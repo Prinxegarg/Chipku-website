@@ -1,0 +1,28 @@
+variant_id,product_id,option_name,option_value,dimensions,finish,pack_count,price,available,stock_quantity,sort_order
+PST-0002-A,PST-0002,Size,Size A,,,,69,TRUE,,1
+PST-0002-B,PST-0002,Size,Size B,,,,69,TRUE,,2
+PST-0004-A,PST-0004,Size,Size A,,,,69,TRUE,,1
+PST-0004-B,PST-0004,Size,Size B,,,,69,FALSE,,2
+PST-0006-A,PST-0006,Size,Size A,,,,69,TRUE,,1
+PST-0006-B,PST-0006,Size,Size B,,,,69,TRUE,,2
+PST-0008-A,PST-0008,Size,Size A,,,,69,TRUE,,1
+PST-0008-B,PST-0008,Size,Size B,,,,69,TRUE,,2
+PST-0010-A,PST-0010,Size,Size A,,,,69,TRUE,,1
+PST-0010-B,PST-0010,Size,Size B,,,,69,TRUE,,2
+PST-0012-A,PST-0012,Size,Size A,,,,69,TRUE,,1
+PST-0012-B,PST-0012,Size,Size B,,,,69,TRUE,,2
+PST-0014-A,PST-0014,Size,Size A,,,,69,TRUE,,1
+PST-0014-B,PST-0014,Size,Size B,,,,69,TRUE,,2
+PST-0016-A,PST-0016,Size,Size A,,,,69,TRUE,,1
+PST-0016-B,PST-0016,Size,Size B,,,,69,TRUE,,2
+PST-0017-A,PST-0017,Size,Size A,,,,69,FALSE,,1
+POL-0001-BIG,POL-0001,Format,Big polaroid,8.9 × 10.7 cm,,,69,TRUE,,1
+POL-0001-PHONE,POL-0001,Format,Phone-case polaroid,6.4 × 7.6 cm,,,69,TRUE,,2
+POL-0002-BIG,POL-0002,Format,Big polaroid,8.9 × 10.7 cm,,,69,TRUE,,1
+POL-0002-PHONE,POL-0002,Format,Phone-case polaroid,6.4 × 7.6 cm,,,69,TRUE,,2
+POL-0003-BIG,POL-0003,Format,Big polaroid,8.9 × 10.7 cm,,,69,TRUE,,1
+POL-0004-BIG,POL-0004,Format,Big polaroid,8.9 × 10.7 cm,,,69,TRUE,,1
+POL-0004-PHONE,POL-0004,Format,Phone-case polaroid,6.4 × 7.6 cm,,,69,TRUE,,2
+POL-0005-BIG,POL-0005,Format,Big polaroid,8.9 × 10.7 cm,,,69,TRUE,,1
+POL-0005-PHONE,POL-0005,Format,Phone-case polaroid,6.4 × 7.6 cm,,,69,TRUE,,2
+POL-0006-PHONE,POL-0006,Format,Phone-case polaroid,6.4 × 7.6 cm,,,69,TRUE,,1

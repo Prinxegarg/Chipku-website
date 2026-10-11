@@ -1,0 +1,60 @@
+---
+import { PRIMARY_NAV } from '../../lib/nav.ts';
+import { icons } from '../../lib/render/html.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const s = catalog.settings;
+const hasOffers = catalog.offers.buyGet.length > 0 || catalog.offers.spend !== null;
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="/" aria-label="CHIPKU home">
+          <img src="/brand/chipku-wordmark-400.webp" width="400" height="139" alt="" loading="lazy" decoding="async" />
+        </a>
+        <p class="footer__tagline">Your walls need us</p>
+        <p class="footer__line">Posters, photo prints and stickers for the corners you call yours.</p>
+      </div>
+      <nav aria-labelledby="f-shop">
+        <h2 id="f-shop">Shop</h2>
+        <ul role="list">
+          {PRIMARY_NAV.map((i) => <li><a href={i.href}>{i.label}</a></li>)}
+          <li><a href="/shop">Shop all</a></li>
+          {catalog.custom.length > 0 && <li><a href="/#custom-prints">Custom prints</a></li>}
+        </ul>
+      </nav>
+      <nav aria-labelledby="f-help">
+        <h2 id="f-help">Help</h2>
+        <ul role="list">
+          {hasOffers && <li><button type="button" data-open-offers aria-haspopup="dialog">Offer details</button></li>}
+          <li><a href="/cart">Your cart</a></li>
+          <li>
+            <a href={s.instagramUrl} rel="noopener" target="_blank">Custom orders on Instagram<span class="sr-only"> (opens in a new tab)</span></a>
+          </li>
+          {s.contactEmail && <li><a href={`mailto:${s.contactEmail}`}>{s.contactEmail}</a></li>}
+        </ul>
+      </nav>
+      <nav aria-labelledby="f-about">
+        <h2 id="f-about">Follow</h2>
+        <ul role="list">
+          <li>
+            <a href={s.instagramUrl} rel="noopener" target="_blank">
+              <Fragment set:html={icons.instagram} />@{s.instagramHandle}<span class="sr-only"> on Instagram (opens in a new tab)</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="footer__base">
+      <p>© {year} CHIPKU. All rights reserved.</p>
+      <p>Prices in INR.</p>
+    </div>
+  </div>
+</footer>

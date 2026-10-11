@@ -1,0 +1,69 @@
+---
+import SectionHead from '../ui/SectionHead.astro';
+import Tabs from '../ui/Tabs.astro';
+import { categoryUrl, inCategory, isPurchasable } from '../../lib/catalog/index.ts';
+import { gridHTML } from '../../lib/render/ctx.ts';
+import { icons } from '../../lib/render/html.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const preview = catalog.mode === 'preview';
+const collections = catalog.categories.filter((c) => c.featured);
+const tabs = collections
+  .map((c) => {
+    const items = inCategory(catalog, c.id)
+      .filter(isPurchasable)
+      .sort((a, b) => Number(b.trending) - Number(a.trending) || a.sortOrder - b.sortOrder)
+      .slice(0, 4);
+    return {
+      id: c.id,
+      label: c.title,
+      html: gridHTML(catalog, items),
+      footer: { href: categoryUrl(c), label: `View all ${c.title}` },
+      count: items.length,
+    };
+  })
+  .filter((t) => t.count > 0);
+---
+
+{
+  collections.length > 0 && (
+    <section class="section collections" aria-labelledby="col-title">
+      <div class="wrap">
+        <SectionHead id="col-title" title="Shop by collection" highlight="collection" sub="Find your vibe — then see what's trending in it." />
+        <ul class="col-tiles" role="list">
+          {collections.map((c, i) => (
+            <li>
+              <a class="col-tile" href={categoryUrl(c)}>
+                <span class="col-tile__art" aria-hidden="true">
+                  {c.image ? (
+                    <img src={c.image.url} alt="" width="800" height="600" loading="lazy" decoding="async" data-media style={c.image.focal ? `object-position:${c.image.focal}` : undefined} />
+                  ) : (
+                    <span class={`col-tile__ph col-tile__ph--${i % 4}`}>
+                      <span />
+                      <span />
+                    </span>
+                  )}
+                  {preview && !c.image && <span class="ph__label">{c.title} image</span>}
+                </span>
+                <span class="col-tile__label">
+                  <span class="col-tile__title">{c.title}</span>
+                  <span class="col-tile__go" set:html={icons.arrow} />
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        {tabs.length > 0 && (
+          <div class="collections__trending">
+            <h3 class="sub-title">Trending in…</h3>
+            <Tabs items={tabs} label="Trending posters by collection" idPrefix="col" />
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,5 @@
+category_id,title,slug,product_type,parent_id,description,image_url,alt_text,show_on_home,sort_order,active
+sports,Sports,sports,poster,,Game-day energy for your wall.,,,TRUE,10,TRUE
+music,Music,music,poster,,For the songs that live rent-free.,,,TRUE,20,TRUE
+aesthetics,Aesthetics,aesthetics,poster,,"Calm colour, clean lines, good mood.",,,TRUE,30,TRUE
+movies,Movies,movies,poster,,Scenes worth a second look.,,,TRUE,40,TRUE

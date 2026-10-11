@@ -1,0 +1,84 @@
+---
+import { jsonForScript } from '../../lib/render/html.ts';
+import SectionHead from '../ui/SectionHead.astro';
+import { byType, isPurchasable } from '../../lib/catalog/index.ts';
+import { gridHTML } from '../../lib/render/ctx.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+  title?: string;
+  highlight?: string;
+  sub?: string;
+  limit?: number;
+  excludeId?: string;
+  id?: string;
+}
+const {
+  catalog,
+  title = 'From camera roll to keepsake.',
+  highlight = 'keepsake',
+  sub = 'Photo prints for your favourite corners — in every format we print.',
+  limit = 8,
+  excludeId,
+  id = 'prints-title',
+} = Astro.props;
+const prints = byType(catalog, 'polaroid')
+  .filter((p) => p.id !== excludeId && isPurchasable(p))
+  .sort((a, b) => Number(b.trending) - Number(a.trending) || a.sortOrder - b.sortOrder)
+  .slice(0, limit);
+const formatMap: Record<string, string[]> = {};
+const formats = new Map<string, string | undefined>();
+for (const p of prints) {
+  formatMap[p.id] = p.variants.map((v) => v.label);
+  for (const v of p.variants) if (!formats.has(v.label)) formats.set(v.label, v.dimensions);
+}
+const showFilter = formats.size > 1;
+---
+
+{
+  prints.length > 0 && (
+    <section class="section prints" aria-labelledby={id} data-format-filter>
+      <div class="wrap">
+        <SectionHead id={id} title={title} highlight={highlight} sub={sub} link={{ href: '/photo-prints', label: 'View all photo prints' }} />
+        {showFilter && (
+          <div class="format-filter" role="group" aria-label="Filter by format">
+            <button type="button" class="pill" aria-pressed="true" data-format="">
+              All formats
+            </button>
+            {[...formats].map(([label, dims]) => (
+              <button type="button" class="pill" aria-pressed="false" data-format={label}>
+                {label}
+                {dims && <span class="pill__meta">{dims}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        <Fragment set:html={gridHTML(catalog, prints, { showFormats: true })} />
+        <p class="sr-only" aria-live="polite" data-format-status />
+        <script type="application/json" data-format-map set:html={jsonForScript(formatMap)} />
+      </div>
+    </section>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-format-filter]').forEach((section) => {
+    const map = JSON.parse(section.querySelector('[data-format-map]')?.textContent || '{}') as Record<string, string[]>;
+    const buttons = [...section.querySelectorAll<HTMLButtonElement>('[data-format]')];
+    const status = section.querySelector<HTMLElement>('[data-format-status]');
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const f = b.dataset.format ?? '';
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        let shown = 0;
+        section.querySelectorAll<HTMLElement>('[data-card]').forEach((card) => {
+          const ok = !f || (map[card.dataset.productId ?? ''] ?? []).includes(f);
+          card.hidden = !ok;
+          if (ok) shown++;
+        });
+        if (status) status.textContent = `${shown} photo print${shown === 1 ? '' : 's'} shown${f ? ` in ${f}` : ''}.`;
+      }),
+    );
+  });
+</script>

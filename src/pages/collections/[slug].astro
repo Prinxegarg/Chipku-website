@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import Listing from '../../components/product/Listing.astro';
+import { TYPE_ROUTES, getCatalog, inCategory } from '../../lib/catalog/index.ts';
+
+export async function getStaticPaths() {
+  const catalog = await getCatalog();
+  return catalog.categories.map((c) => ({ params: { slug: c.slug }, props: { id: c.id } }));
+}
+
+const { id } = Astro.props as { id: string };
+const catalog = await getCatalog();
+const category = catalog.categories.find((c) => c.id === id)!;
+const products = inCategory(catalog, id);
+const parentRoute = TYPE_ROUTES[category.productType ?? 'poster'];
+const crumbs = [
+  { href: '/', label: 'Home' },
+  { href: parentRoute.path, label: parentRoute.title },
+];
+---
+
+<Base title={`${category.title} ${parentRoute.title.toLowerCase()}`} description={category.description}>
+  <Listing
+    catalog={catalog}
+    title={category.title}
+    intro={category.description}
+    products={products}
+    crumbs={crumbs}
+    filters={{ type: true, option: true }}
+  />
+</Base>

@@ -1,0 +1,66 @@
+---
+import SectionHead from '../ui/SectionHead.astro';
+import { icons } from '../../lib/render/html.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const preview = catalog.mode === 'preview';
+const { details, faq } = catalog;
+---
+
+{
+  (details.length > 0 || preview) && (
+    <section class="section section--paper details" aria-labelledby="det-title">
+      <div class="wrap">
+        <SectionHead id="det-title" title="The details that matter." highlight="matter." />
+        {details.length > 0 ? (
+          <ul class="details__grid" role="list">
+            {details.map((d, i) => (
+              <li class="detail">
+                <span class="detail__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <h3 class="detail__title">{d.title}</h3>
+                <p class="detail__body prewrap">{d.body}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="slot-note">
+            <strong>Content slot: verified paper, finish, sizing and application facts.</strong>
+            <span>Add rows to the Details tab. This section stays hidden on the live site until it has content.</span>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+{
+  (faq.length > 0 || preview) && (
+    <section class="section faq" aria-labelledby="faq-title">
+      <div class="wrap faq__wrap">
+        <SectionHead id="faq-title" title="Questions, answered." highlight="answered." />
+        {faq.length > 0 ? (
+          <div class="accordion faq__list">
+            {faq.map((f) => (
+              <details>
+                <summary>
+                  {f.title}
+                  <Fragment set:html={icons.plus} />
+                </summary>
+                <div class="accordion__body prewrap">{f.body}</div>
+              </details>
+            ))}
+          </div>
+        ) : (
+          <div class="slot-note">
+            <strong>Content slot: short FAQ.</strong>
+            <span>Add rows to the FAQ tab with answers that match your real policies. Hidden on the live site until filled.</span>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}

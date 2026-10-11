@@ -1,0 +1,52 @@
+---
+import type { Catalog } from '../../lib/types.ts';
+import { TYPE_ROUTES, byType } from '../../lib/catalog/index.ts';
+import { icons } from '../../lib/render/html.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const preview = catalog.mode === 'preview';
+const tiles = (['poster', 'polaroid', 'sticker'] as const).map((type, i) => ({
+  type,
+  n: String(i + 1).padStart(2, '0'),
+  ...TYPE_ROUTES[type],
+  count: byType(catalog, type).length,
+  image: catalog.settings.tileImages[type],
+}));
+---
+
+<section class="section cat-tiles" aria-labelledby="cat-title">
+  <div class="wrap">
+    <h2 class="sr-only" id="cat-title">Shop by product</h2>
+    <ul class="cat-tiles__list" role="list">
+      {
+        tiles.map((t) => (
+          <li>
+            <a class={`cat-tile cat-tile--${t.type}`} href={t.path}>
+              <span class="cat-tile__art" aria-hidden="true">
+                {t.image ? (
+                  <img src={t.image.url} alt="" width="800" height="600" loading="lazy" decoding="async" data-media />
+                ) : (
+                  <span class="cat-tile__ph">
+                    <span class="ct ct--1" />
+                    <span class="ct ct--2" />
+                    <span class="ct ct--3" />
+                  </span>
+                )}
+                {preview && !t.image && <span class="ph__label">{t.title} image · 4:3</span>}
+              </span>
+              <span class="cat-tile__num" aria-hidden="true">{t.n}</span>
+              <span class="cat-tile__text">
+                <span class="cat-tile__title">{t.title}</span>
+                <span class="cat-tile__intro">{t.intro}</span>
+              </span>
+              <span class="cat-tile__go" aria-hidden="true" set:html={icons.arrow} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

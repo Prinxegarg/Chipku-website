@@ -1,0 +1,400 @@
+---
+import Base from '../../layouts/Base.astro';
+import SectionHead from '../../components/ui/SectionHead.astro';
+import PhotoPrints from '../../components/home/PhotoPrints.astro';
+import ProductReviews from '../../components/product/ProductReviews.astro';
+import OfferTiles from '../../components/product/OfferTiles.astro';
+import {
+  TYPE_ROUTES,
+  categoryById,
+  categoryUrl,
+  getCatalog,
+  isPurchasable,
+  relatedFor,
+  toClientProduct,
+} from '../../lib/catalog/index.ts';
+import { gridHTML } from '../../lib/render/ctx.ts';
+import { esc, icons, jsonForScript } from '../../lib/render/html.ts';
+import { GALLERY_WIDTHS, imageTransformOrigins, responsive } from '../../lib/images.ts';
+import { placeholderHTML, priceLabel, ratingHTML } from '../../lib/render/card.ts';
+import { formatMoney } from '../../lib/money.ts';
+import { activeOffers, isEligible } from '../../lib/offers.ts';
+import type { Product } from '../../lib/types.ts';
+
+export async function getStaticPaths() {
+  const catalog = await getCatalog();
+  return catalog.products.map((product) => ({ params: { slug: product.slug }, props: { productId: product.id } }));
+}
+
+const { productId } = Astro.props as { productId: string };
+const catalog = await getCatalog();
+const product = catalog.products.find((p) => p.id === productId) as Product;
+const preview = catalog.mode === 'preview';
+const route = TYPE_ROUTES[product.type];
+const category = categoryById(catalog, product.primaryCategoryId);
+const origins = imageTransformOrigins();
+const client = toClientProduct(product);
+
+// Gallery: real media, plus reserved preview slots; a missing image keeps one tidy placeholder.
+const media = product.media.length > 0 ? product.media : [];
+const slides = media.length > 0 ? media : [undefined];
+
+const variants = product.variants;
+const purchasable = isPurchasable(product);
+const single = variants.length === 1;
+const defaultVariant = single && variants[0].available && variants[0].price !== null ? variants[0] : undefined;
+const optionName = variants[0]?.optionName ?? 'Size';
+const optionWord = optionName.toLowerCase();
+const price = priceLabel(client);
+const sizeGuideIndex = media.findIndex((m) => m.role === 'size_guide');
+
+const offers = activeOffers(catalog.offers);
+const eligibleForBuyGet =
+  offers.buyGet.length > 0 &&
+  product.variants.some((v) => isEligible(offers.buyGetEligibility, { productType: product.type, categoryIds: product.categoryIds, variantId: v.id }));
+
+const related = relatedFor(catalog, product, 8);
+const relatedTitle = related.label === 'same' && category ? `More from ${category.title}` : 'You may also like';
+const relatedLink = category ? { href: categoryUrl(category), label: `View ${category.title}` } : { href: route.path, label: `View ${route.title.toLowerCase()}` };
+
+const crumbs = [
+  { href: '/', label: 'Home' },
+  { href: route.path, label: route.title },
+  ...(category ? [{ href: categoryUrl(category), label: category.title }] : []),
+];
+
+const detailsRows = variants
+  .filter((v) => v.dimensions || v.finish || v.packCount)
+  .map((v) => ({ label: v.label, dims: v.dimensions, finish: v.finish, pack: v.packCount }));
+const hasDetails = Boolean(product.details || detailsRows.length);
+
+const pageData = {
+  product: client,
+  media: media.map((m) => ({ id: m.id, variantId: m.variantId ?? null })),
+  maxQty: catalog.settings.maxQtyPerItem,
+  preview,
+};
+
+const description = product.description ?? `${product.title} — ${route.singular.toLowerCase()} from CHIPKU.`;
+const ogImage = media.find((m) => m.url)?.url;
+const jsonLd = purchasable && !preview
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.title,
+      description,
+      image: media.filter((m) => m.url).map((m) => m.url),
+      sku: product.id,
+      offers: variants
+        .filter((v) => v.price !== null)
+        .map((v) => ({
+          '@type': 'Offer',
+          sku: v.id,
+          price: ((v.price as number) / 100).toFixed(2),
+          priceCurrency: 'INR',
+          availability: v.available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        })),
+      ...(product.rating ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: product.rating.average, reviewCount: product.rating.count } } : {}),
+    }
+  : null;
+---
+
+<Base title={product.title} description={description} image={ogImage}>
+  {jsonLd && <script type="application/ld+json" slot="head" set:html={jsonForScript(jsonLd)} />}
+  <nav class="crumbs wrap" aria-label="Breadcrumb">
+    <ol role="list">
+      {crumbs.map((c) => <li><a href={c.href}>{c.label}</a></li>)}
+      <li><span aria-current="page">{product.title}</span></li>
+    </ol>
+  </nav>
+
+  <div class="wrap pdp" data-pdp>
+    <section class="pdp__gallery gallery" aria-label={`${product.title} images`} data-gallery>
+      <div class="gallery__main">
+        <div class="gallery__track" data-gallery-track tabindex="-1">
+          {
+            slides.map((m, i) => {
+              const r = m?.url ? responsive(m.url, GALLERY_WIDTHS, origins) : null;
+              return (
+                <figure class="gallery__slide" data-gallery-slide={i} data-variant={m?.variantId} aria-label={`Image ${i + 1} of ${slides.length}`}>
+                  {m && r ? (
+                    <button type="button" class="gallery__zoom" data-zoom={i} aria-label={`Zoom image ${i + 1}: ${m.alt}`}>
+                      <img
+                        class:list={['media-img', m.fit === 'cover' ? 'media-img--cover' : 'media-img--contain']}
+                        src={r.src}
+                        srcset={r.srcset || undefined}
+                        sizes="(min-width: 960px) 40vw, 100vw"
+                        alt={m.alt}
+                        width="1200"
+                        height="1500"
+                        loading={i === 0 ? 'eager' : 'lazy'}
+                        fetchpriority={i === 0 ? 'high' : undefined}
+                        decoding="async"
+                        style={m.fit === 'cover' && m.focal ? `object-position:${m.focal}` : undefined}
+                        data-media
+                      />
+                    </button>
+                  ) : (
+                    <Fragment set:html={placeholderHTML(product.type, m?.role, preview)} />
+                  )}
+                </figure>
+              );
+            })
+          }
+        </div>
+        {
+          slides.length > 1 && (
+            <>
+              <button type="button" class="gallery__nav gallery__nav--prev icon-btn icon-btn--round" data-gallery-prev aria-label="Previous image" set:html={icons.left} />
+              <button type="button" class="gallery__nav gallery__nav--next icon-btn icon-btn--round" data-gallery-next aria-label="Next image" set:html={icons.right} />
+              <p class="gallery__count" aria-live="polite">
+                <span data-gallery-current>1</span> / {slides.length}
+              </p>
+            </>
+          )
+        }
+      </div>
+      {
+        slides.length > 1 && (
+          <div class="gallery__thumbs" role="group" aria-label="Choose an image">
+            {slides.map((m, i) => {
+              const r = m?.url ? responsive(m.url, [160, 240], origins) : null;
+              return (
+                <button type="button" class="gallery__thumb" data-thumb={i} aria-label={`Show image ${i + 1}${m?.alt ? `: ${m.alt}` : ''}`} aria-current={i === 0 ? 'true' : undefined}>
+                  {m && r ? (
+                    <img src={r.src} srcset={r.srcset || undefined} sizes="80px" alt="" width="160" height="200" loading="lazy" decoding="async" data-media class:list={['media-img', m.fit === 'cover' ? 'media-img--cover' : 'media-img--contain']} />
+                  ) : (
+                    <Fragment set:html={placeholderHTML(product.type, m?.role, preview)} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )
+      }
+    </section>
+
+    <section class="pdp__info" aria-labelledby="pdp-title">
+      <a class="pdp__cat" href={category ? categoryUrl(category) : route.path}>{category ? `${route.title} · ${category.title}` : route.title}</a>
+      <h1 class="pdp__title" id="pdp-title">{product.title}</h1>
+      {product.rating && <a class="pdp__rating" href="#reviews" set:html={ratingHTML(product.rating, false) + `<span class="pdp__rating-count">${product.rating.count} review${product.rating.count === 1 ? '' : 's'}</span>`} />}
+      <p class="pdp__price" data-pdp-price aria-live="polite">
+        {
+          price ? (
+            <>
+              {price.from && !defaultVariant && <span class="from">From </span>}
+              <span data-price-value>{defaultVariant ? formatMoney(defaultVariant.price as number) : price.text}</span>
+            </>
+          ) : (
+            <span class="pdp__unavailable">Currently unavailable</span>
+          )
+        }
+        {preview && price && <span class="price-preview-note">Design preview price</span>}
+      </p>
+      {product.description && <p class="pdp__desc">{product.description}</p>}
+
+      <form class="pdp__form" data-pdp-form data-add-scope novalidate>
+        {
+          !single && (
+            <fieldset class="option-group" data-options aria-describedby="opt-error">
+              <legend class="option-group__legend pdp__legend">
+                <span>
+                  {optionName}
+                  <span class="option-group__chosen" data-chosen />
+                </span>
+                {sizeGuideIndex >= 0 && (
+                  <button type="button" class="pdp__guide" data-size-guide={sizeGuideIndex}>
+                    Size guide
+                  </button>
+                )}
+              </legend>
+              <div class="chip-group">
+                {variants.map((v) => {
+                  const disabled = !v.available || v.price === null;
+                  return (
+                    <label class="chip">
+                      <input type="radio" name="variant" value={v.id} disabled={disabled} required />
+                      <span>
+                        <span class="chip__name">{v.label}</span>
+                        {v.dimensions && <small>{v.dimensions}</small>}
+                        {disabled && <small>Unavailable</small>}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )
+        }
+        {
+          single && (variants[0].dimensions || variants[0].label !== 'Standard') && (
+            <p class="pdp__single-opt">
+              <span class="muted">{optionName}:</span> {variants[0].label}
+              {variants[0].dimensions && variants[0].label !== variants[0].dimensions && <span class="muted"> · {variants[0].dimensions}</span>}
+            </p>
+          )
+        }
+        <p class="field__error" id="opt-error" data-opt-error role="alert" />
+        {
+          purchasable && (
+            <div class="pdp__qty">
+              <span class="label" id="qty-label">
+                Quantity
+              </span>
+              <div class="qty" role="group" aria-labelledby="qty-label">
+                <button type="button" data-qty-dec aria-label="Decrease quantity" disabled set:html={icons.minus} />
+                <input type="text" inputmode="numeric" pattern="[0-9]*" value="1" name="qty" data-qty aria-label="Quantity" />
+                <button type="button" data-qty-inc aria-label="Increase quantity" set:html={icons.plus} />
+              </div>
+            </div>
+          )
+        }
+        <button type="submit" class="btn btn--block btn--lg pdp__add" data-pdp-add disabled={!purchasable} aria-describedby="opt-error">
+          <span class="btn__label">
+            {
+              !purchasable ? (
+                'Currently unavailable'
+              ) : defaultVariant ? (
+                <Fragment set:html={`Add to cart <span class="btn__sep">·</span> ${esc(formatMoney(defaultVariant.price as number))}`} />
+              ) : (
+                `Choose a ${optionWord}`
+              )
+            }
+          </span>
+        </button>
+        <p class="field__error add-error" data-add-error role="alert" />
+      </form>
+
+      <OfferTiles catalog={catalog} eligible={eligibleForBuyGet} productType={product.type} />
+
+      <div class="accordion pdp__acc">
+        {
+          hasDetails && (
+            <details open>
+              <summary>
+                Product details
+                <Fragment set:html={icons.plus} />
+              </summary>
+              <div class="accordion__body">
+                {product.details && <p class="prewrap">{product.details}</p>}
+                {detailsRows.length > 0 && (
+                  <dl class="spec-list">
+                    {detailsRows.map((d) => (
+                      <div>
+                        <dt>{d.label}</dt>
+                        <dd>{[d.dims, d.finish, d.pack ? `Pack of ${d.pack}` : ''].filter(Boolean).join(' · ')}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </div>
+            </details>
+          )
+        }
+        {
+          (offers.buyGet.length > 0 || offers.spend) && (
+            <details>
+              <summary>
+                Offer terms
+                <Fragment set:html={icons.plus} />
+              </summary>
+              <div class="accordion__body">
+                <ul class="offers-modal__rules">
+                  {offers.buyGet.length > 0 && <li>Buy/Get: “Get” means extra free items. The highest tier you qualify for applies once per order.</li>}
+                  {offers.buyGet.length > 0 && <li>Lowest-priced eligible items are free. You choose every design.</li>}
+                  {offers.spend && <li>{offers.spend.label}{offers.buyGet.length > 0 ? ' — combines with Buy/Get offers.' : '.'}</li>}
+                </ul>
+                <button type="button" class="text-link" data-open-offers aria-haspopup="dialog">All offer details</button>
+              </div>
+            </details>
+          )
+        }
+        {
+          catalog.settings.deliveryInfo && (
+            <details>
+              <summary>
+                Delivery
+                <Fragment set:html={icons.plus} />
+              </summary>
+              <div class="accordion__body prewrap">{catalog.settings.deliveryInfo}</div>
+            </details>
+          )
+        }
+        {
+          catalog.settings.returnsInfo && (
+            <details>
+              <summary>
+                Returns
+                <Fragment set:html={icons.plus} />
+              </summary>
+              <div class="accordion__body prewrap">{catalog.settings.returnsInfo}</div>
+            </details>
+          )
+        }
+      </div>
+      {
+        preview && !catalog.settings.deliveryInfo && (
+          <p class="slot-note pdp__slot">Delivery and Returns sections appear here once delivery_info and returns_info are set in the Settings tab.</p>
+        )
+      }
+    </section>
+  </div>
+
+  {
+    purchasable && (
+      <div class="buybar" data-buybar hidden>
+        <div class="buybar__inner">
+          <div class="buybar__info">
+            <p class="buybar__title">{product.title}</p>
+            <p class="buybar__price" data-buybar-price>
+              {defaultVariant ? formatMoney(defaultVariant.price as number) : price ? `${price.from ? 'From ' : ''}${price.text}` : ''}
+            </p>
+          </div>
+          <button type="button" class="btn" data-buybar-btn>
+            <span class="btn__label">{defaultVariant ? 'Add to cart' : 'Choose options'}</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  {
+    related.items.length > 0 && (
+      <section class="section pdp-related" aria-labelledby="rel-title" data-related>
+        <div class="wrap">
+          <SectionHead id="rel-title" title={relatedTitle} highlight={related.label === 'same' ? category?.title : undefined} sub="A few more for your wall." link={relatedLink} />
+          <Fragment set:html={gridHTML(catalog, related.items)} />
+        </div>
+      </section>
+    )
+  }
+
+  <PhotoPrints
+    catalog={catalog}
+    title="A little more personal."
+    highlight="personal."
+    sub="Explore photo prints for your favourite corners."
+    limit={4}
+    excludeId={product.id}
+    id="pdp-prints-title"
+  />
+
+  <ProductReviews catalog={catalog} product={product} />
+
+  <dialog class="zoom" id="zoom-dialog" aria-label={`${product.title} — enlarged images`}>
+    <div class="zoom__bar">
+      <p class="zoom__count" aria-live="polite"><span data-zoom-current>1</span> / {media.filter((m) => m.url).length}</p>
+      <button type="button" class="icon-btn" data-close aria-label="Close enlarged images" set:html={icons.close} />
+    </div>
+    <div class="zoom__stage" data-zoom-stage></div>
+    <button type="button" class="zoom__nav zoom__nav--prev icon-btn icon-btn--round" data-zoom-prev aria-label="Previous image" set:html={icons.left} />
+    <button type="button" class="zoom__nav zoom__nav--next icon-btn icon-btn--round" data-zoom-next aria-label="Next image" set:html={icons.right} />
+  </dialog>
+
+  <script type="application/json" id="pdp-data" set:html={jsonForScript(pageData)} />
+  <script type="application/json" id="pdp-zoom-data" set:html={jsonForScript(media.filter((m) => m.url).map((m) => ({ src: responsive(m.url, GALLERY_WIDTHS, origins).src, srcset: responsive(m.url, GALLERY_WIDTHS, origins).srcset, alt: m.alt, index: media.indexOf(m) })))} />
+</Base>
+
+<script>
+  import '../../client/product.ts';
+</script>

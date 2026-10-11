@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import { PRIMARY_NAV } from '../lib/nav.ts';
+import { getCatalog, categoryUrl } from '../lib/catalog/index.ts';
+
+const catalog = await getCatalog();
+const posterCats = catalog.categories.filter((c) => (c.productType ?? 'poster') === 'poster');
+---
+
+<Base title="Search" noindex>
+  <div class="wrap search-page" data-search-page>
+    <header class="listing-head">
+      <h1 class="section-title">Search</h1>
+      <form class="search-form" action="/search" method="get" role="search">
+        <label class="sr-only" for="search-page-input">Search posters, photo prints and stickers</label>
+        <input class="input" id="search-page-input" name="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Search posters, prints, stickers…" data-search-page-input />
+        <button type="submit" class="btn">Search</button>
+      </form>
+    </header>
+    <p class="listing-count" aria-live="polite" data-search-count></p>
+    <div data-search-page-results>
+      <noscript><p>Search needs JavaScript. Browse a category instead.</p></noscript>
+    </div>
+    <div class="search-page__suggest" data-search-suggest hidden>
+      <p class="label">Browse instead</p>
+      <div class="search-suggest">
+        {PRIMARY_NAV.map((i) => <a href={i.href}>{i.label}</a>)}
+        {posterCats.map((c) => <a href={categoryUrl(c)}>{c.title}</a>)}
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { cardHTML } from '../lib/render/card.ts';
+  import { esc } from '../lib/render/html.ts';
+  import { searchProducts } from '../lib/search.ts';
+  import { loadCatalog } from '../client/catalog.ts';
+  import { enhanceCards } from '../client/media.ts';
+
+  const q = new URLSearchParams(location.search).get('q')?.trim() ?? '';
+  const input = document.querySelector<HTMLInputElement>('[data-search-page-input]')!;
+  const out = document.querySelector<HTMLElement>('[data-search-page-results]')!;
+  const count = document.querySelector<HTMLElement>('[data-search-count]')!;
+  const suggest = document.querySelector<HTMLElement>('[data-search-suggest]')!;
+  input.value = q;
+  if (!q) {
+    suggest.hidden = false;
+    input.focus();
+  } else {
+    loadCatalog()
+      .then((catalog) => {
+        const hits = searchProducts(catalog, q);
+        const titles = new Map(catalog.categories.map((c) => [c.id, c.title]));
+        const ctx = {
+          origins: catalog.imageTransformOrigins,
+          preview: catalog.mode === 'preview',
+          categoryTitle: (id?: string) => (id ? titles.get(id) : undefined),
+          sizes: '(min-width: 1024px) 23vw, 46vw',
+        };
+        count.textContent = `${hits.length} result${hits.length === 1 ? '' : 's'} for “${q}”`;
+        if (hits.length === 0) {
+          out.innerHTML = `<div class="listing-empty"><p class="listing-empty__title">No results for “${esc(q)}”</p><p class="muted">Check the spelling, try a shorter word, or browse a category.</p></div>`;
+          suggest.hidden = false;
+          return;
+        }
+        out.innerHTML = `<div class="grid grid--4">${hits.map((p) => cardHTML(p, ctx)).join('')}</div>`;
+        enhanceCards(out);
+      })
+      .catch(() => {
+        out.innerHTML = '<p class="notice notice--error">Search is unavailable right now. Please try again.</p>';
+      });
+  }
+</script>

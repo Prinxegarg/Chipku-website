@@ -1,0 +1,15 @@
+---
+import { gridHTML } from '../../lib/render/ctx.ts';
+import type { RenderCtx } from '../../lib/render/card.ts';
+import type { Catalog, Product } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+  products: Product[];
+  ctx?: Partial<RenderCtx>;
+  class?: string;
+}
+const { catalog, products, ctx = {}, class: cls = 'grid grid--4' } = Astro.props;
+---
+
+<Fragment set:html={gridHTML(catalog, products, ctx, cls)} />

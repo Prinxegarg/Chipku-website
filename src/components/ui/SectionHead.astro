@@ -1,0 +1,33 @@
+---
+import { esc, icons } from '../../lib/render/html.ts';
+interface Props {
+  title: string;
+  /** Word(s) in the title to mark with the yellow slanted tab. */
+  highlight?: string;
+  sub?: string;
+  id: string;
+  link?: { href: string; label: string };
+}
+const { title, highlight, sub, id, link } = Astro.props;
+// Built as one string so no template whitespace sneaks in around the highlight.
+const i = highlight ? title.indexOf(highlight) : -1;
+const titleHTML =
+  i >= 0 && highlight
+    ? `${esc(title.slice(0, i))}<span class="hl">${esc(highlight)}</span>${esc(title.slice(i + highlight.length))}`
+    : esc(title);
+---
+
+<div class="section-head">
+  <div class="section-head__text">
+    <h2 class="section-title" id={id} set:html={titleHTML} />
+    {sub && <p class="section-sub">{sub}</p>}
+  </div>
+  {
+    link && (
+      <a class="text-link" href={link.href}>
+        {link.label}
+        <Fragment set:html={icons.arrow} />
+      </a>
+    )
+  }
+</div>

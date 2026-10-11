@@ -1,0 +1,13 @@
+key,value,notes
+instagram_handle,chipku_shop,Custom orders are taken by Instagram DM.
+instagram_url,https://www.instagram.com/chipku_shop/,
+shipping_fee,,Leave blank until shipping charges are confirmed. Checkout stays closed while blank.
+shipping_note,,
+tax_note,,
+delivery_info,,
+returns_info,,
+contact_email,,
+max_qty_per_item,10,
+announcement,Posters. Prints. Stickers. All you.,Shown only when no offers are active.
+currency_increment,1,
+buy_get_terms,,Optional extra terms for the Buy/Get ladder.

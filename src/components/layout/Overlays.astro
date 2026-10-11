@@ -1,0 +1,181 @@
+---
+import { PRIMARY_NAV } from '../../lib/nav.ts';
+import { icons } from '../../lib/render/html.ts';
+import { activeOffers, tierNeed } from '../../lib/offers.ts';
+import { formatMoney } from '../../lib/money.ts';
+import { categoryUrl } from '../../lib/catalog/index.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const offers = activeOffers(catalog.offers);
+const posterCats = catalog.categories.filter((c) => !c.productType || c.productType === 'poster');
+const elig = offers.buyGetEligibility;
+const typeWord: Record<string, string> = { poster: 'posters', sticker: 'stickers', polaroid: 'photo prints' };
+const eligibleWhat = elig.productTypes.length ? elig.productTypes.map((t) => typeWord[t]).join(', ') : 'all products';
+const eligibleCats = elig.categoryIds
+  .map((id) => catalog.categories.find((c) => c.id === id)?.title ?? id)
+  .join(', ');
+const browseHref =
+  elig.productTypes.length === 1
+    ? { poster: '/posters', sticker: '/stickers', polaroid: '/photo-prints' }[elig.productTypes[0]]
+    : '/shop';
+const spend = offers.spend;
+---
+
+<dialog class="drawer" id="cart-drawer" aria-labelledby="cart-title">
+  <div class="drawer__head">
+    <h2 class="drawer__title" id="cart-title" tabindex="-1">Your cart <span class="muted" data-cart-heading-count></span></h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close cart" set:html={icons.close} />
+  </div>
+  <div class="drawer__body" data-cart-body>
+    <div class="cart-loading" aria-hidden="true">
+      <div class="skeleton" style="height:72px"></div>
+      <div class="skeleton" style="height:72px"></div>
+    </div>
+  </div>
+  <div class="drawer__foot" data-cart-foot hidden></div>
+</dialog>
+
+<dialog class="modal modal--sheet" id="quick-add" aria-labelledby="quick-add-title">
+  <div class="modal__head">
+    <h2 class="modal__title" id="quick-add-title" tabindex="-1">Choose options</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close" set:html={icons.close} />
+  </div>
+  <div class="modal__body" data-quick-body></div>
+</dialog>
+
+<dialog class="drawer drawer--left" id="menu-drawer" aria-labelledby="menu-title">
+  <div class="drawer__head">
+    <h2 class="drawer__title" id="menu-title" tabindex="-1">Menu</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close menu" set:html={icons.close} />
+  </div>
+  <div class="drawer__body">
+    <nav aria-label="Shop">
+      <ul class="menu-list" role="list">
+        <li>
+          <details>
+            <summary>Posters <Fragment set:html={icons.down} /></summary>
+            <ul class="menu-sub" role="list">
+              <li><a href="/posters">All posters</a></li>
+              {posterCats.map((c) => <li><a href={categoryUrl(c)}>{c.title}</a></li>)}
+            </ul>
+          </details>
+        </li>
+        {PRIMARY_NAV.slice(1).map((i) => <li><a href={i.href}>{i.label}</a></li>)}
+        <li><a href="/shop">Shop all</a></li>
+      </ul>
+    </nav>
+    <div class="menu-secondary">
+      {catalog.custom.length > 0 && <a href="/#custom-prints">Custom prints</a>}
+      {(offers.buyGet.length > 0 || spend) && <button type="button" data-open-offers aria-haspopup="dialog">Offer details</button>}
+      <a href={catalog.settings.instagramUrl} rel="noopener" target="_blank">
+        <Fragment set:html={icons.instagram} />@{catalog.settings.instagramHandle}<span class="sr-only"> on Instagram (opens in a new tab)</span>
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="search-dialog" id="search-dialog" aria-label="Search CHIPKU">
+  <div class="wrap">
+    <form class="search-form" action="/search" method="get" role="search" data-search-form>
+      <label class="sr-only" for="search-input">Search posters, photo prints and stickers</label>
+      <input
+        class="input"
+        id="search-input"
+        name="q"
+        type="search"
+        autocomplete="off"
+        enterkeyhint="search"
+        placeholder="Search posters, prints, stickers…"
+        data-autofocus
+        data-search-input
+      />
+      <button type="button" class="icon-btn" data-close aria-label="Close search" set:html={icons.close} />
+    </form>
+    <div class="search-results" data-search-results aria-live="polite">
+      <p class="label muted">Popular categories</p>
+      <div class="search-suggest">
+        {PRIMARY_NAV.map((i) => <a href={i.href}>{i.label}</a>)}
+        {posterCats.map((c) => <a href={categoryUrl(c)}>{c.title}</a>)}
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<div class="cats-pop" id="cats-pop" popover>
+  <p class="cats-pop__title">Shop by category</p>
+  <ul class="cats-pop__list" role="list">
+    <li>
+      <a href="/posters"><strong>Posters</strong></a>
+      <ul role="list">{posterCats.map((c) => <li><a href={categoryUrl(c)}>{c.title}</a></li>)}</ul>
+    </li>
+    {PRIMARY_NAV.slice(1).map((i) => <li><a href={i.href}><strong>{i.label}</strong></a></li>)}
+  </ul>
+</div>
+
+{
+  (offers.buyGet.length > 0 || spend) && (
+    <dialog class="modal modal--sheet offers-modal" id="offers-dialog" aria-labelledby="offers-title">
+      <div class="modal__head">
+        <h2 class="modal__title" id="offers-title" tabindex="-1">Offer details</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close offer details" set:html={icons.close} />
+      </div>
+      <div class="modal__body">
+        {offers.buyGet.length > 0 && (
+          <section aria-labelledby="bg-title">
+            <h3 class="offers-modal__h" id="bg-title">Buy/Get offers</h3>
+            <ul class="offer-table" role="list">
+              {offers.buyGet.map((t) => (
+                <li>
+                  <span class="offer-table__label">{t.label}</span>
+                  <span>
+                    Buy {t.paid}, get <strong>{t.free} extra free</strong>
+                  </span>
+                  <span class="muted">
+                    Choose {tierNeed(t)} eligible {typeWord[elig.productTypes[0]] ?? 'items'} · pay for {t.paid}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <ul class="offers-modal__rules">
+              <li>{`Eligible: ${eligibleWhat}${eligibleCats ? ` in ${eligibleCats}` : ''}. Other products don't count towards Buy/Get.`}</li>
+              <li>The highest tier you qualify for applies once per order. Extra eligible items are charged.</li>
+              <li>Lowest-priced eligible items are free.</li>
+              <li>You choose every design, including the free ones. Nothing is added to your cart automatically.</li>
+            </ul>
+            {offers.buyGetTerms && <p class="offers-modal__terms prewrap">{offers.buyGetTerms}</p>}
+            {offers.buyGet.filter((t) => t.terms).map((t) => <p class="offers-modal__terms prewrap"><strong>{t.label}:</strong> {t.terms}</p>)}
+          </section>
+        )}
+        {spend && (
+          <section aria-labelledby="sp-title">
+            <h3 class="offers-modal__h" id="sp-title">{spend.label}</h3>
+            <ul class="offers-modal__rules">
+              {offers.buyGet.length > 0 && <li>Combines with Buy/Get offers.</li>}
+              <li>
+                Worked out on eligible items after Buy/Get savings and before shipping and taxes.
+              </li>
+              {spend.operator === 'gt' ? (
+                <li>
+                  Your eligible total must be above {formatMoney(spend.threshold)} — exactly {formatMoney(spend.threshold)} doesn't
+                  qualify.
+                </li>
+              ) : (
+                <li>Applies when your eligible total is {formatMoney(spend.threshold)} or more.</li>
+              )}
+            </ul>
+            {spend.terms && <p class="offers-modal__terms prewrap">{spend.terms}</p>}
+          </section>
+        )}
+      </div>
+      <div class="modal__foot">
+        <a class="btn btn--block" href={browseHref}>
+          Browse eligible {elig.productTypes.length === 1 ? typeWord[elig.productTypes[0]] : 'products'}
+        </a>
+      </div>
+    </dialog>
+  )
+}

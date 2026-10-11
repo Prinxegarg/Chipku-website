@@ -1,0 +1,135 @@
+---
+import { PRIMARY_NAV, isCurrent } from '../../lib/nav.ts';
+import { icons } from '../../lib/render/html.ts';
+import { activeOffers } from '../../lib/offers.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+  minimal?: boolean;
+}
+const { catalog, minimal = false } = Astro.props;
+const path = Astro.url.pathname;
+const offers = activeOffers(catalog.offers);
+const tiers = offers.buyGet;
+const showOffers = !minimal && (tiers.length > 0 || offers.spend !== null);
+const announcement = !minimal && !showOffers ? catalog.settings.announcement : undefined;
+const sparkle = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5l2.2 7.3 7.3 2.2-7.3 2.2L12 21.5l-2.2-7.3L2.5 12l7.3-2.2z"/></svg>';
+---
+
+<div class="hdr-space" aria-hidden="true"></div>
+<header class="hdr" data-header data-state="expanded">
+  <div class="hdr__bar">
+    <div class="wrap hdr__inner">
+      <div class="hdr__start">
+        <button
+          type="button"
+          class="icon-btn hdr__menu"
+          data-open-menu
+          aria-label="Open menu"
+          aria-haspopup="dialog"
+          aria-controls="menu-drawer"
+          set:html={icons.menu}
+        />
+        <a class="hdr__logo" href="/" aria-label="CHIPKU home">
+          <img
+            src="/brand/chipku-wordmark-400.webp"
+            srcset="/brand/chipku-wordmark-200.webp 200w, /brand/chipku-wordmark-400.webp 400w, /brand/chipku-wordmark-800.webp 800w"
+            sizes="(min-width: 960px) 176px, 124px"
+            width="400"
+            height="139"
+            alt=""
+            decoding="async"
+            fetchpriority="high"
+          />
+        </a>
+      </div>
+      <nav class="hdr__nav" aria-label="Main" data-hdr-nav>
+        <ul role="list">
+          {
+            PRIMARY_NAV.map((item) => (
+              <li>
+                <a href={item.href} aria-current={isCurrent(item.href, path) ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <div class="hdr__actions">
+        <button
+          type="button"
+          class="hdr__cats"
+          data-cats-toggle
+          popovertarget="cats-pop"
+          aria-controls="cats-pop"
+          aria-expanded="false"
+        >
+          <Fragment set:html={icons.grid} />
+          Categories
+        </button>
+        <button type="button" class="icon-btn" data-open-search aria-label="Search" aria-haspopup="dialog" set:html={icons.search} />
+        <button type="button" class="icon-btn hdr__cart" data-open-cart aria-label="Cart, 0 items" aria-haspopup="dialog">
+          <Fragment set:html={icons.bag} />
+          <span class="hdr__count" data-cart-count data-count="0" aria-hidden="true">0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="hdr__rail-clip" data-hdr-rail>
+    <nav class="hdr__rail" aria-label="Categories">
+      <ul role="list">
+        {
+          PRIMARY_NAV.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href, path) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+  {
+    showOffers && (
+      <div class="offerbar" data-offerbar aria-label="Current offers" role="region">
+        <div class="wrap offerbar__inner">
+          <button type="button" class="offerbar__nav" data-offer-prev aria-label="Previous offer" set:html={icons.left} />
+          <ul class="offerbar__list" role="list">
+            {tiers.map((t, i) => (
+              <li
+                class:list={['offerbar__item', { 'is-active': i === 0 }]}
+                data-offer-item
+                data-starts={t.startsAt}
+                data-ends={t.endsAt}
+              >
+                <Fragment set:html={sparkle} />
+                <span>{t.label}</span>
+              </li>
+            ))}
+            {offers.spend && tiers.length === 0 && (
+              <li
+                class:list={['offerbar__item', { 'is-active': tiers.length === 0 }]}
+                data-offer-item
+                data-spend
+                data-starts={offers.spend.startsAt}
+                data-ends={offers.spend.endsAt}
+              >
+                <Fragment set:html={sparkle} />
+                <span>{offers.spend.label}</span>
+              </li>
+            )}
+          </ul>
+          <span class="offerbar__pos" data-offer-pos aria-hidden="true" />
+          <button type="button" class="offerbar__nav" data-offer-next aria-label="Next offer" set:html={icons.right} />
+          <button type="button" class="offerbar__details" data-open-offers aria-haspopup="dialog">
+            Offer details
+          </button>
+        </div>
+      </div>
+    )
+  }
+  {announcement && <p class="announce">{announcement}</p>}
+</header>

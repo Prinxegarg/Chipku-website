@@ -1,0 +1,7 @@
+product_id,title,slug,status,primary_category_id,category_ids,description,details,price,option_label,dimensions,image_url,alt_text,badge,trending,bestseller,new_arrival,tags,sort_order
+POL-0001,Photo print set 01,,active,,,Design preview product. Real photo-print details come from the Polaroids sheet.,,,,,,,,TRUE,FALSE,FALSE,"polaroid, photo print, preview",10
+POL-0002,Photo print set 02,,active,,,Design preview product. Real photo-print details come from the Polaroids sheet.,,,,,,,,TRUE,FALSE,FALSE,"polaroid, photo print, preview",20
+POL-0003,Photo print set 03,,active,,,Design preview product. Real photo-print details come from the Polaroids sheet.,,,,,,,,FALSE,FALSE,FALSE,"polaroid, photo print, preview",30
+POL-0004,Photo print set 04,,active,,,Design preview product. Real photo-print details come from the Polaroids sheet.,,,,,,,,FALSE,FALSE,FALSE,"polaroid, photo print, preview",40
+POL-0005,Photo print set 05,,active,,,Design preview product. Real photo-print details come from the Polaroids sheet.,,,,,,,,FALSE,FALSE,FALSE,"polaroid, photo print, preview",50
+POL-0006,Photo print set 06,,active,,,Design preview product. Real photo-print details come from the Polaroids sheet.,,,,,,,,FALSE,FALSE,FALSE,"polaroid, photo print, preview",60

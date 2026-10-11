@@ -1,0 +1,123 @@
+---
+import SectionHead from '../ui/SectionHead.astro';
+import { icons } from '../../lib/render/html.ts';
+import type { Catalog, CustomProduct } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const preview = catalog.mode === 'preview';
+const items = catalog.custom;
+const handle = catalog.settings.instagramHandle;
+
+/** Photo window position inside the print, in % of the print (polaroid: equal side/top margins). */
+function windowBox(c: CustomProduct) {
+  if (!c.photoMm) return null;
+  const side = (c.printMm.w - c.photoMm.w) / 2;
+  return {
+    left: (side / c.printMm.w) * 100,
+    top: (side / c.printMm.h) * 100,
+    width: (c.photoMm.w / c.printMm.w) * 100,
+    height: (c.photoMm.h / c.printMm.h) * 100,
+  };
+}
+const cm = (mm: number) => `${(mm / 10).toLocaleString('en-IN', { maximumFractionDigits: 2 })} cm`;
+// Mockups keep each format's true proportions; bigger formats are drawn larger.
+const largest = Math.max(...items.map((c) => c.printMm.h), 1);
+const isExternal = (u: string) => /^https:\/\//.test(u);
+---
+
+{
+  items.length > 0 && (
+    <section class="section section--wash custom" id="custom-prints" aria-labelledby="custom-title">
+      <div class="wrap">
+        <SectionHead
+          id="custom-title"
+          title="Make it yours."
+          highlight="yours."
+          sub={`Your photo or design as a poster or polaroid. Custom orders are taken on Instagram — send your file to @${handle} in a DM.`}
+        />
+        <ol class="custom__steps" role="list">
+          <li>
+            <span class="custom__step-n">1</span>
+            <span>Pick a format below.</span>
+          </li>
+          <li>
+            <span class="custom__step-n">2</span>
+            <span>DM your photo or design to <strong>@{handle}</strong> with the format name.</span>
+          </li>
+          <li>
+            <span class="custom__step-n">3</span>
+            <span>Confirm the details with us in the chat.</span>
+          </li>
+        </ol>
+        <ul class="custom__grid" role="list">
+          {items.map((c) => {
+            const box = windowBox(c);
+            const scale = 0.55 + 0.45 * (c.printMm.h / largest);
+            return (
+              <li class="custom-card">
+                <div class="custom-card__stage">
+                  {c.mockup ? (
+                    <img class="media-img media-img--cover" src={c.mockup.url} alt={c.mockup.alt} width="800" height="800" loading="lazy" decoding="async" data-media />
+                  ) : (
+                    <div
+                      class:list={['mock', { 'mock--polaroid': !!box, 'mock--poster': !box }]}
+                      role="img"
+                      aria-label={`${c.title} mockup: ${c.finishedSize}${c.photoArea ? `, photo area ${c.photoArea}` : ''}`}
+                      style={`--mock-ratio:${c.printMm.w} / ${c.printMm.h}; --mock-scale:${scale.toFixed(3)}`}
+                    >
+                      <div class="mock__print">
+                        {box ? (
+                          <span
+                            class="mock__photo"
+                            style={`left:${box.left.toFixed(2)}%;top:${box.top.toFixed(2)}%;width:${box.width.toFixed(2)}%;height:${box.height.toFixed(2)}%`}
+                          >
+                            <span>Photo area</span>
+                          </span>
+                        ) : (
+                          <span class="mock__photo mock__photo--full">
+                            <span>Your design</span>
+                          </span>
+                        )}
+                        <span class="mock__dim mock__dim--w" aria-hidden="true">{cm(c.printMm.w)}</span>
+                        <span class="mock__dim mock__dim--h" aria-hidden="true">{cm(c.printMm.h)}</span>
+                      </div>
+                    </div>
+                  )}
+                  {preview && !c.mockup && <span class="ph__label">Mockup slot</span>}
+                </div>
+                <div class="custom-card__body">
+                  <h3 class="custom-card__title">{c.title}</h3>
+                  <dl class="custom-card__specs">
+                    <div>
+                      <dt>Print size</dt>
+                      <dd>{c.finishedSize}</dd>
+                    </div>
+                    {c.photoArea && (
+                      <div>
+                        <dt>Photo area</dt>
+                        <dd>{c.photoArea}</dd>
+                      </div>
+                    )}
+                  </dl>
+                  {c.description && <p class="custom-card__desc">{c.description}</p>}
+                  <a
+                    class="btn btn--block custom-card__cta"
+                    href={c.ctaUrl}
+                    {...(isExternal(c.ctaUrl) ? { rel: 'noopener', target: '_blank' } : {})}
+                  >
+                    <Fragment set:html={icons.instagram} />
+                    {c.ctaLabel}
+                    {isExternal(c.ctaUrl) && <span class="sr-only"> (opens Instagram in a new tab)</span>}
+                  </a>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )
+}

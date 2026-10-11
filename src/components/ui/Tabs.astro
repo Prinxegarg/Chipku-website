@@ -1,0 +1,64 @@
+---
+/**
+ * Server-rendered ARIA tabs. Pass items with pre-rendered panel HTML.
+ * The first panel is visible without JavaScript; every panel also links to its full listing.
+ */
+interface Item {
+  id: string;
+  label: string;
+  html: string;
+  footer?: { href: string; label: string };
+}
+interface Props {
+  items: Item[];
+  label: string;
+  idPrefix: string;
+}
+const { items, label, idPrefix } = Astro.props;
+---
+
+<div class="tabs" data-tabs>
+  {
+    items.length > 1 && (
+      <div class="tabs__list" role="tablist" aria-label={label}>
+        {items.map((it, i) => (
+          <button
+            type="button"
+            role="tab"
+            class="tabs__tab"
+            id={`${idPrefix}-tab-${it.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`${idPrefix}-panel-${it.id}`}
+            tabindex={i === 0 ? 0 : -1}
+          >
+            {it.label}
+          </button>
+        ))}
+      </div>
+    )
+  }
+  {
+    items.map((it, i) => (
+      <div
+        class="tabs__panel"
+        id={`${idPrefix}-panel-${it.id}`}
+        role={items.length > 1 ? 'tabpanel' : undefined}
+        aria-labelledby={items.length > 1 ? `${idPrefix}-tab-${it.id}` : undefined}
+        hidden={i > 0}
+      >
+        <Fragment set:html={it.html} />
+        {it.footer && (
+          <p class="tabs__more">
+            <a class="text-link" href={it.footer.href}>
+              {it.footer.label}
+            </a>
+          </p>
+        )}
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  import '../../client/tabs.ts';
+</script>

@@ -1,0 +1,6 @@
+offer_id,type,label,paid_qty,free_qty,threshold,threshold_operator,percent_off,eligible_product_types,eligible_category_ids,eligible_variant_ids,active,starts_at,ends_at,terms
+B1G1,buy_get,Buy 1 Get 1,1,1,,,,poster,,,TRUE,,,
+B2G3,buy_get,Buy 2 Get 3,2,3,,,,poster,,,TRUE,,,
+B3G4,buy_get,Buy 3 Get 4,3,4,,,,poster,,,TRUE,,,
+B4G6,buy_get,Buy 4 Get 6,4,6,,,,poster,,,TRUE,,,
+SPEND399,spend_percent,10% off orders above ₹399,,,399,gt,10,,,,TRUE,,,

@@ -1,0 +1,30 @@
+---
+import SectionHead from '../ui/SectionHead.astro';
+import Tabs from '../ui/Tabs.astro';
+import { isPurchasable } from '../../lib/catalog/index.ts';
+import { gridHTML } from '../../lib/render/ctx.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+// Selections come only from merchant flags in the sheet — never inferred popularity.
+const trending = catalog.products.filter((p) => p.trending && isPurchasable(p)).slice(0, 8);
+const best = catalog.products.filter((p) => p.bestseller && isPurchasable(p)).slice(0, 8);
+const items = [
+  trending.length && { id: 'trending', label: 'Trending', html: gridHTML(catalog, trending) },
+  best.length && { id: 'bestsellers', label: 'Bestsellers', html: gridHTML(catalog, best) },
+].filter(Boolean) as { id: string; label: string; html: string }[];
+---
+
+{
+  items.length > 0 && (
+    <section class="section featured" aria-labelledby="feat-title">
+      <div class="wrap">
+        <SectionHead id="feat-title" title="Find your next favourite." highlight="favourite" link={{ href: '/shop', label: 'Shop all' }} />
+        <Tabs items={items} label="Product picks" idPrefix="feat" />
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,100 @@
+---
+import Base from '../layouts/Base.astro';
+import { icons } from '../lib/render/html.ts';
+
+const STATES = [
+  'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chandigarh', 'Chhattisgarh',
+  'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir',
+  'Jharkhand', 'Karnataka', 'Kerala', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
+  'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+];
+---
+
+<Base title="Checkout" noindex minimalHeader>
+  <nav class="crumbs wrap" aria-label="Breadcrumb">
+    <ol role="list">
+      <li><a href="/cart">Cart</a></li>
+      <li><span aria-current="page">Checkout</span></li>
+    </ol>
+  </nav>
+  <div class="wrap" data-checkout>
+    <header class="listing-head">
+      <h1 class="section-title" tabindex="-1" data-checkout-title>Checkout</h1>
+    </header>
+
+    <div class="page-cart" data-checkout-main>
+      <form class="panel" data-checkout-form novalidate aria-labelledby="ship-title">
+        <h2 class="panel__title" id="ship-title">Contact and delivery</h2>
+        <div class="form-grid form-grid--2">
+          <div class="field field--full">
+            <label for="co-name">Full name</label>
+            <input class="input" id="co-name" name="name" autocomplete="name" required maxlength="80" />
+            <p class="field__error" data-error-for="name"></p>
+          </div>
+          <div class="field">
+            <label for="co-phone">Mobile number</label>
+            <input class="input" id="co-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" required maxlength="14" aria-describedby="co-phone-help" />
+            <p class="field__help" id="co-phone-help">10-digit Indian mobile number.</p>
+            <p class="field__error" data-error-for="phone"></p>
+          </div>
+          <div class="field">
+            <label for="co-email">Email</label>
+            <input class="input" id="co-email" name="email" type="email" autocomplete="email" required maxlength="120" />
+            <p class="field__error" data-error-for="email"></p>
+          </div>
+          <div class="field field--full">
+            <label for="co-line1">Address</label>
+            <input class="input" id="co-line1" name="line1" autocomplete="address-line1" required maxlength="120" placeholder="House / flat, street" />
+            <p class="field__error" data-error-for="line1"></p>
+          </div>
+          <div class="field field--full">
+            <label for="co-line2">Area, landmark <span class="muted">(optional)</span></label>
+            <input class="input" id="co-line2" name="line2" autocomplete="address-line2" maxlength="120" />
+          </div>
+          <div class="field">
+            <label for="co-city">City</label>
+            <input class="input" id="co-city" name="city" autocomplete="address-level2" required maxlength="60" />
+            <p class="field__error" data-error-for="city"></p>
+          </div>
+          <div class="field">
+            <label for="co-pin">PIN code</label>
+            <input class="input" id="co-pin" name="pincode" inputmode="numeric" autocomplete="postal-code" required maxlength="6" />
+            <p class="field__error" data-error-for="pincode"></p>
+          </div>
+          <div class="field field--full">
+            <label for="co-state">State / union territory</label>
+            <select class="select" id="co-state" name="state" autocomplete="address-level1" required>
+              <option value="">Select</option>
+              {STATES.map((s) => <option>{s}</option>)}
+            </select>
+            <p class="field__error" data-error-for="state"></p>
+          </div>
+        </div>
+        <div class="checkout-status" data-checkout-status></div>
+        <button type="submit" class="btn btn--block btn--lg" data-pay disabled style="margin-top:16px">
+          <span class="btn__label">Checking checkout…</span>
+        </button>
+        <p class="sum__note">Payments are processed securely by Razorpay. Your cart is saved if you leave this page.</p>
+      </form>
+      <aside class="page-cart__aside panel panel--paper" aria-labelledby="sum-title">
+        <h2 class="panel__title" id="sum-title">Order summary</h2>
+        <div class="checkout-lines" data-checkout-lines></div>
+        <div data-checkout-summary></div>
+        <a class="text-link" href="/cart">Edit cart</a>
+      </aside>
+    </div>
+
+    <div class="order-done" data-order-done hidden tabindex="-1">
+      <span class="order-done__icon" set:html={icons.check} />
+      <h2 class="section-title">Thank you!</h2>
+      <p>Your payment was successful.</p>
+      <p class="muted" data-order-ref></p>
+      <a class="btn" href="/shop">Keep exploring</a>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import '../client/checkout.ts';
+</script>

@@ -1,0 +1,5 @@
+{
+  "$comment": "Google Sheets connection. Leave publishedUrl empty to build the preview catalogue from content/demo. Each tab value is either the tab's gid (number after #gid= in the sheet URL) or a full 'Publish to web' CSV link. Use the CHIPKU menu in the sheet (integrations/google-apps-script) to print this block for you. The CHIPKU_SHEETS_CONFIG environment variable (same JSON) overrides this file.",
+  "publishedUrl": "",
+  "tabs": {}
+}

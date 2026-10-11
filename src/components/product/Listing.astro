@@ -1,0 +1,203 @@
+---
+import { gridHTML } from '../../lib/render/ctx.ts';
+import { esc, icons, jsonForScript } from '../../lib/render/html.ts';
+import { TYPE_ROUTES, categoryUrl } from '../../lib/catalog/index.ts';
+import type { Catalog, Category, Product } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+  title: string;
+  highlight?: string;
+  intro?: string;
+  products: Product[];
+  crumbs: { href: string; label: string }[];
+  /** Filters that make sense for this listing. */
+  filters: { type?: boolean; category?: boolean; option?: boolean };
+  subCategories?: Category[];
+  defaultSort?: 'featured' | 'newest';
+}
+const { catalog, title, highlight, intro, products, crumbs, filters, subCategories = [], defaultSort = 'featured' } = Astro.props;
+
+const typeLabel = (t: string) => TYPE_ROUTES[t as keyof typeof TYPE_ROUTES]?.title ?? t;
+const cats = catalog.categories.filter((c) => products.some((p) => p.categoryIds.includes(c.id)));
+const types = [...new Set(products.map((p) => p.type))];
+const options = [...new Set(products.flatMap((p) => p.variants.map((v) => v.label)).filter((l) => l !== 'Standard'))];
+const prices = products.flatMap((p) => p.variants.filter((v) => v.price !== null).map((v) => v.price as number));
+const priceVaries = prices.length > 1 && Math.min(...prices) !== Math.max(...prices);
+const someUnavailable = products.some((p) => !p.variants.some((v) => v.available && v.price !== null));
+
+const showType = filters.type && types.length > 1;
+const showCat = filters.category && cats.length > 1;
+const showOpt = filters.option && options.length > 1;
+
+const meta = Object.fromEntries(
+  products.map((p, i) => {
+    const live = p.variants.filter((v) => v.available && v.price !== null);
+    return [
+      p.id,
+      {
+        t: p.type,
+        c: p.categoryIds,
+        o: p.variants.map((v) => v.label),
+        p: live.length ? Math.min(...live.map((v) => v.price as number)) : null,
+        a: live.length > 0,
+        n: p.isNew ? 1 : 0,
+        i,
+      },
+    ];
+  }),
+);
+---
+
+<nav class="crumbs wrap" aria-label="Breadcrumb">
+  <ol role="list">
+    {crumbs.map((c) => <li><a href={c.href}>{c.label}</a></li>)}
+    <li><span aria-current="page">{title}</span></li>
+  </ol>
+</nav>
+
+<div class="wrap" data-listing data-default-sort={defaultSort}>
+  <header class="listing-head">
+    <h1 class="section-title" set:html={highlight && title.includes(highlight) ? esc(title).replace(esc(highlight), `<span class="hl">${esc(highlight)}</span>`) : esc(title)} />
+    {intro && <p class="listing-head__intro">{intro}</p>}
+    {
+      subCategories.length > 0 && (
+        <nav class="sub-cats" aria-label="Collections">
+          {subCategories.map((c) => (
+            <a class="pill" href={categoryUrl(c)}>
+              {c.title}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+  </header>
+
+  {
+    products.length > 0 ? (
+      <>
+        <div class="listing-bar">
+          <div class="listing-bar__filters">
+            {showType && (
+              <>
+                <button type="button" class="pill" popovertarget="f-type">
+                  Product type <Fragment set:html={icons.down} />
+                </button>
+                <div class="filter-pop" id="f-type" popover>
+                  <fieldset class="chip-group" style="display:grid;gap:0">
+                    <legend class="filter-pop__title">Product type</legend>
+                    {types.map((t) => (
+                      <label class="check">
+                        <input type="checkbox" name="type" value={t} />
+                        {typeLabel(t)}
+                      </label>
+                    ))}
+                  </fieldset>
+                </div>
+              </>
+            )}
+            {showCat && (
+              <>
+                <button type="button" class="pill" popovertarget="f-cat">
+                  Collection <Fragment set:html={icons.down} />
+                </button>
+                <div class="filter-pop" id="f-cat" popover>
+                  <fieldset class="chip-group" style="display:grid;gap:0">
+                    <legend class="filter-pop__title">Collection</legend>
+                    {cats.map((c) => (
+                      <label class="check">
+                        <input type="checkbox" name="cat" value={c.id} />
+                        {c.title}
+                      </label>
+                    ))}
+                  </fieldset>
+                </div>
+              </>
+            )}
+            {showOpt && (
+              <>
+                <button type="button" class="pill" popovertarget="f-opt">
+                  Size / format <Fragment set:html={icons.down} />
+                </button>
+                <div class="filter-pop" id="f-opt" popover>
+                  <fieldset class="chip-group" style="display:grid;gap:0">
+                    <legend class="filter-pop__title">Size / format</legend>
+                    {options.map((o) => (
+                      <label class="check">
+                        <input type="checkbox" name="opt" value={o} />
+                        {o}
+                      </label>
+                    ))}
+                  </fieldset>
+                </div>
+              </>
+            )}
+            {priceVaries && (
+              <>
+                <button type="button" class="pill" popovertarget="f-price">
+                  Price <Fragment set:html={icons.down} />
+                </button>
+                <div class="filter-pop" id="f-price" popover>
+                  <p class="filter-pop__title">Price (₹)</p>
+                  <div class="form-grid form-grid--2">
+                    <div class="field">
+                      <label for="f-min">Min</label>
+                      <input class="input" id="f-min" name="min" type="number" inputmode="numeric" min="0" />
+                    </div>
+                    <div class="field">
+                      <label for="f-max">Max</label>
+                      <input class="input" id="f-max" name="max" type="number" inputmode="numeric" min="0" />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+            {someUnavailable && (
+              <label class="check pill">
+                <input type="checkbox" name="avail" value="1" />
+                In stock only
+              </label>
+            )}
+          </div>
+          <div class="listing-bar__end">
+            <label class="select-inline">
+              Sort
+              <select class="select" name="sort" data-sort>
+                <option value="featured">Featured</option>
+                <option value="newest">New arrivals first</option>
+                {priceVaries && <option value="price-asc">Price: low to high</option>}
+                {priceVaries && <option value="price-desc">Price: high to low</option>}
+              </select>
+            </label>
+          </div>
+        </div>
+        <p class="listing-count" aria-live="polite" data-count>
+          {products.length} product{products.length === 1 ? '' : 's'}
+        </p>
+        <div class="active-filters" data-active />
+        <Fragment set:html={gridHTML(catalog, products, {}, 'grid grid--4 listing-grid')} />
+        <div class="listing-empty" data-empty hidden>
+          <p class="listing-empty__title">Nothing matches those filters</p>
+          <p class="muted">Try removing a filter to see more.</p>
+          <button type="button" class="btn btn--secondary" data-clear>
+            Clear all filters
+          </button>
+        </div>
+        <script type="application/json" data-listing-meta set:html={jsonForScript(meta)} />
+        <script type="application/json" data-listing-labels set:html={jsonForScript({ cat: Object.fromEntries(cats.map((c) => [c.id, c.title])), type: Object.fromEntries(types.map((t) => [t, typeLabel(t)])) })} />
+      </>
+    ) : (
+      <div class="listing-empty">
+        <p class="listing-empty__title">Nothing here yet</p>
+        <p class="muted">There are no products in this list right now.</p>
+        <a class="btn" href="/shop">
+          Explore CHIPKU
+        </a>
+      </div>
+    )
+  }
+</div>
+
+<script>
+  import '../../client/listing.ts';
+</script>

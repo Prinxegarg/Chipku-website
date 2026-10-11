@@ -1,0 +1,163 @@
+---
+import { icons, jsonForScript } from '../../lib/render/html.ts';
+import type { Catalog, Product } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+  product: Product;
+}
+const { catalog, product } = Astro.props;
+const preview = catalog.mode === 'preview';
+// Product reviews and store-wide feedback stay separate: store photos never affect this product's rating.
+const own = catalog.reviews.filter((r) => r.scope === 'product' && r.productId === product.id);
+const store = catalog.reviews.filter((r) => r.scope === 'store' && r.media.length > 0).slice(0, 8);
+const withPhotos = own.filter((r) => r.media.length > 0).length;
+const LONG = 280;
+const fmtDate = (d?: string) =>
+  d ? new Date(`${d}T00:00:00+05:30`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const dialogData = [...own, ...store].map((r) => ({ id: r.id, name: r.displayName, body: r.body, title: r.title, rating: r.rating, media: r.media, date: fmtDate(r.date) }));
+---
+
+<section class="section pdp-reviews" id="reviews" aria-labelledby="pdp-rev-title" data-pdp-reviews>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-head__text">
+        <h2 class="section-title" id="pdp-rev-title">From the CHIPKU <span class="hl">community.</span></h2>
+      </div>
+    </div>
+
+    <div class="pdp-reviews__summary">
+      {
+        product.rating ? (
+          <p class="pdp-reviews__score">
+            <span class="pdp-reviews__avg">{product.rating.average.toFixed(1)}</span>
+            <span class="stars stars--lg" style={`--pct:${(product.rating.average / 5) * 100}%`} aria-hidden="true" />
+            <span>
+              Based on {product.rating.count} rating{product.rating.count === 1 ? '' : 's'} for this product
+            </span>
+          </p>
+        ) : (
+          own.length > 0 && <p>{own.length} review{own.length === 1 ? '' : 's'} for this product</p>
+        )
+      }
+      {
+        own.length > 0 && withPhotos > 0 && withPhotos < own.length && (
+          <div class="pdp-reviews__filters" role="group" aria-label="Filter reviews">
+            <button type="button" class="pill" aria-pressed="true" data-rev-filter="all">
+              All reviews ({own.length})
+            </button>
+            <button type="button" class="pill" aria-pressed="false" data-rev-filter="photos">
+              With photos ({withPhotos})
+            </button>
+          </div>
+        )
+      }
+    </div>
+
+    {
+      own.length > 0 ? (
+        <>
+          <ul class="rev-grid" role="list" data-rev-list>
+            {own.map((r, i) => (
+              <li class="rev" data-has-photo={r.media.length > 0 ? '1' : '0'} hidden={i >= 6}>
+                {r.media.length > 0 && (
+                  <div class="rev__photos">
+                    {r.media.slice(0, 3).map((m) => (
+                      <button type="button" class="rev__photo" data-review-open={r.id} aria-label={`View photo from ${r.displayName}`}>
+                        <img src={m.url} alt={m.alt} width="240" height="240" loading="lazy" decoding="async" data-media />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {r.rating && (
+                  <p class="review-card__stars">
+                    <span class="stars" style={`--pct:${(r.rating / 5) * 100}%`} aria-hidden="true" />
+                    <span class="sr-only">Rated {r.rating} out of 5</span>
+                  </p>
+                )}
+                {r.title && <p class="review-card__title">{r.title}</p>}
+                {r.body.length > LONG ? (
+                  <div class="rev__text" data-expandable>
+                    <p class="prewrap" data-full hidden>
+                      {r.body}
+                    </p>
+                    <p data-short>{`${r.body.slice(0, LONG).trimEnd()}…`}</p>
+                    <button type="button" class="review-card__more" data-expand aria-expanded="false">
+                      Read more
+                    </button>
+                  </div>
+                ) : (
+                  <p class="rev__text prewrap">{r.body}</p>
+                )}
+                <p class="review-card__by">
+                  <strong>{r.displayName}</strong>
+                  {r.verified && <span class="badge badge--line">Verified purchase</span>}
+                </p>
+                {r.date && (
+                  <p class="review-card__meta">
+                    <time datetime={r.date}>{fmtDate(r.date)}</time>
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+          {own.length > 6 && (
+            <p class="pdp-reviews__more">
+              <button type="button" class="btn btn--secondary" data-rev-more>
+                Load more reviews
+              </button>
+            </p>
+          )}
+        </>
+      ) : preview ? (
+        <ul class="rev-grid" role="list">
+          {[1, 2, 3].map((n) => (
+            <li class="rev rev--ph">
+              <div class="rev__photo rev__photo--ph">
+                <span class="ph__label">Customer photo {n}</span>
+              </div>
+              <span class="ph-line" style="width:90%" />
+              <span class="ph-line" style="width:70%" />
+              <p class="review-card__meta">Product review — appears when supplied in the Reviews sheet</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="pdp-reviews__empty">No reviews for this product yet.</p>
+      )
+    }
+
+    {
+      store.length > 0 && (
+        <div class="store-photos">
+          <h3 class="sub-title">Photos from the community</h3>
+          <p class="muted store-photos__note">Store-wide photos from customers — not specific to this product.</p>
+          <ul class="store-photos__list" role="list">
+            {store.map((r) => (
+              <li>
+                <button type="button" class="rev__photo" data-review-open={r.id} aria-label={`View photo from ${r.displayName}`}>
+                  <img src={r.media[0].url} alt={r.media[0].alt} width="240" height="240" loading="lazy" decoding="async" data-media />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+  {dialogData.length > 0 && <script type="application/json" data-review-data set:html={jsonForScript(dialogData)} />}
+</section>
+
+{
+  dialogData.length > 0 && (
+    <dialog class="modal review-dialog" id="review-dialog" aria-labelledby="review-dialog-title">
+      <div class="modal__head">
+        <h2 class="modal__title" id="review-dialog-title" tabindex="-1">
+          Review
+        </h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close review" set:html={icons.close} />
+      </div>
+      <div class="modal__body" data-review-dialog-body />
+    </dialog>
+  )
+}

@@ -1,0 +1,18 @@
+product_id,title,slug,status,primary_category_id,category_ids,description,details,price,option_label,dimensions,image_url,alt_text,badge,trending,bestseller,new_arrival,tags,sort_order
+PST-0001,Sports poster 01,,active,sports,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,TRUE,FALSE,FALSE,"sports, preview",10
+PST-0002,Sports poster 02,,active,sports,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,,TRUE,FALSE,FALSE,"sports, preview",20
+PST-0003,Sports poster 03,,active,sports,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,FALSE,TRUE,FALSE,"sports, preview",30
+PST-0004,Sports poster 04,,active,sports,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,New,FALSE,FALSE,TRUE,"sports, preview",40
+PST-0005,Music poster 01,,active,music,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,TRUE,FALSE,FALSE,"music, preview",50
+PST-0006,Music poster 02,,active,music,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,,TRUE,FALSE,FALSE,"music, preview",60
+PST-0007,Music poster 03,,active,music,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,FALSE,TRUE,FALSE,"music, preview",70
+PST-0008,Music poster 04,,active,music,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,New,FALSE,FALSE,TRUE,"music, preview",80
+PST-0009,Aesthetics poster 01,,active,aesthetics,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,TRUE,FALSE,FALSE,"aesthetics, preview",90
+PST-0010,Aesthetics poster 02,,active,aesthetics,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,,TRUE,FALSE,FALSE,"aesthetics, preview",100
+PST-0011,Aesthetics poster 03,,active,aesthetics,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,FALSE,TRUE,FALSE,"aesthetics, preview",110
+PST-0012,Aesthetics poster 04,,active,aesthetics,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,New,FALSE,FALSE,TRUE,"aesthetics, preview",120
+PST-0013,Movies poster 01,,active,movies,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,TRUE,FALSE,FALSE,"movies, preview",130
+PST-0014,Movies poster 02,,active,movies,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,,TRUE,FALSE,FALSE,"movies, preview",140
+PST-0015,Movies poster 03,,active,movies,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,69,,,,,,FALSE,TRUE,FALSE,"movies, preview",150
+PST-0016,Movies poster 04,,active,movies,,"Design preview product. Real title, artwork and description come from the Posters sheet.",,,,,,,New,FALSE,FALSE,TRUE,"movies, preview",160
+PST-0017,Movies poster 05,,active,movies,,Design preview product used to show the unavailable state.,,,,,,,,FALSE,FALSE,FALSE,"movies, preview",170

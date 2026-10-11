@@ -1,0 +1,94 @@
+---
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/anton/400.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/components.css';
+import '../styles/layout.css';
+import '../styles/sections.css';
+import '../styles/product.css';
+import '../styles/cart.css';
+import antonLatin from '@fontsource/anton/files/anton-latin-400-normal.woff2?url';
+import interLatin600 from '@fontsource/inter/files/inter-latin-600-normal.woff2?url';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import Overlays from '../components/layout/Overlays.astro';
+import { getCatalog } from '../lib/catalog/index.ts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Social image URL (absolute). */
+  image?: string;
+  noindex?: boolean;
+  /** Hide the persistent offer bar (e.g. checkout). */
+  minimalHeader?: boolean;
+}
+
+const { title, description, image, noindex = false, minimalHeader = false } = Astro.props;
+const catalog = await getCatalog();
+const fullTitle = title ? `${title} · CHIPKU` : 'CHIPKU — Your walls need us';
+const desc = description ?? 'Posters, photo prints and stickers that make your space yours. Your walls need us.';
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).toString() : undefined;
+const preview = catalog.mode === 'preview';
+---
+
+<!doctype html>
+<html lang="en-IN" data-mode={catalog.mode} data-catalog-version={catalog.version}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {(noindex || preview) && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="/brand/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/brand/icon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/brand/icon-16.png" type="image/png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preload" href={antonLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLatin600} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/brand/chipku-wordmark-400.webp" as="image" type="image/webp" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CHIPKU" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {image && <meta property="og:image" content={image} />}
+    <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header catalog={catalog} minimal={minimalHeader} />
+    {
+      preview && (
+        <div class="preview-strip">
+          <div class="wrap">
+            <strong>Preview</strong>
+            <span>
+              Demo catalogue: placeholder images and ₹69 example prices.<span class="preview-strip__more">
+                Real products appear once Google Sheets is connected.</span
+              >
+            </span>
+          </div>
+        </div>
+      )
+    }
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer catalog={catalog} />
+    <Overlays catalog={catalog} />
+    <div id="sr-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
+    <script>
+      import '../client/site.ts';
+    </script>
+  </body>
+</html>

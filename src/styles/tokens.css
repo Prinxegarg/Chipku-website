@@ -1,0 +1,82 @@
+/* CHIPKU design tokens — from CHIPKU-DESIGN.md §3, §5, §6 */
+:root {
+  /* colour */
+  --canvas: #ffffff;
+  --ink: #111111;
+  --ink-hover: #2a2a2a;
+  --paper: #f6f5f1;
+  --paper-deep: #ecebe5;
+  --yellow: #ffe000;
+  --orange: #ff9d00;
+  --wash: #fff8cc;
+  --text-2: #595959;
+  --line: #e4e4e0;
+  --control: #767676;
+  --success: #176b3a;
+  --success-bg: #e8f3ec;
+  --error: #b42318;
+  --error-bg: #fdecea;
+  --focus: #2457d6;
+  --scrim: rgb(17 17 17 / 0.48);
+
+  /* type */
+  --font-display: 'Anton', Impact, 'Arial Narrow', Arial, sans-serif;
+  --font-ui: 'Inter', Arial, sans-serif;
+  --fs-hero: clamp(2.375rem, 1.4rem + 4.2vw, 5rem);
+  --fs-section: clamp(1.625rem, 1.2rem + 1.6vw, 2.75rem);
+  --fs-h1-product: clamp(1.5rem, 1.15rem + 1.1vw, 2.125rem);
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-label: 0.8125rem;
+
+  /* shape */
+  --r-btn: 8px;
+  --r-img: 12px;
+  --r-pill: 999px;
+
+  /* spacing scale: 4 8 12 16 24 32 48 64 80 96 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 80px;
+  --s10: 96px;
+
+  /* layout */
+  --maxw: 1320px;
+  --gutter: 16px;
+  --section-y: 48px;
+  --tap: 44px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --t-fast: 160ms;
+  --t-med: 260ms;
+  --t-slide: 420ms;
+
+  /* header (JS measures and updates these) */
+  --header-expanded: 148px;
+  --header-visible: 148px;
+  --sticky-bar-h: 0px;
+
+  --shadow-print: 0 1px 2px rgb(17 17 17 / 0.08), 0 8px 24px -8px rgb(17 17 17 / 0.22);
+  --shadow-pop: 0 12px 40px -12px rgb(17 17 17 / 0.28);
+}
+
+@media (min-width: 600px) {
+  :root {
+    --gutter: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: clamp(40px, 4vw, 64px);
+    --section-y: clamp(72px, 7vw, 96px);
+  }
+}

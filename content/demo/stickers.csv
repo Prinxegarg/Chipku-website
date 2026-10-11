@@ -1,0 +1,9 @@
+product_id,title,slug,status,primary_category_id,category_ids,description,details,price,option_label,dimensions,image_url,alt_text,badge,trending,bestseller,new_arrival,tags,sort_order
+STK-0001,Sticker 01,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,New,TRUE,FALSE,TRUE,"sticker, preview",10
+STK-0002,Sticker 02,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,TRUE,FALSE,TRUE,"sticker, preview",20
+STK-0003,Sticker 03,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,FALSE,FALSE,FALSE,"sticker, preview",30
+STK-0004,Sticker 04,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,FALSE,FALSE,FALSE,"sticker, preview",40
+STK-0005,Sticker 05,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,FALSE,FALSE,FALSE,"sticker, preview",50
+STK-0006,Sticker 06,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,FALSE,FALSE,FALSE,"sticker, preview",60
+STK-0007,Sticker 07,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,FALSE,FALSE,FALSE,"sticker, preview",70
+STK-0008,Sticker 08,,active,,,Design preview product. Real sticker details come from the Stickers sheet.,,69,,,,,,FALSE,FALSE,FALSE,"sticker, preview",80

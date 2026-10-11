@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local testing with `npx wrangler pages dev dist` (never commit .dev.vars).
+CHECKOUT_ENABLED=false
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=replace_me
+ORDERS_WEBHOOK_URL=
+ORDERS_WEBHOOK_SECRET=

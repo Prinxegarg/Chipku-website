@@ -1,0 +1,32 @@
+---
+import SectionHead from '../ui/SectionHead.astro';
+import { byType, isPurchasable } from '../../lib/catalog/index.ts';
+import { gridHTML } from '../../lib/render/ctx.ts';
+import type { Catalog } from '../../lib/types.ts';
+
+interface Props {
+  catalog: Catalog;
+}
+const { catalog } = Astro.props;
+const stickers = byType(catalog, 'sticker')
+  .filter(isPurchasable)
+  .sort((a, b) => Number(b.trending) - Number(a.trending) || a.sortOrder - b.sortOrder)
+  .slice(0, 4);
+---
+
+{
+  stickers.length > 0 && (
+    <section class="section stickers" aria-labelledby="stk-title">
+      <div class="wrap">
+        <SectionHead
+          id="stk-title"
+          title="Small stickers. Big personality."
+          highlight="Big personality."
+          sub="For laptops, journals and whatever needs a little personality."
+          link={{ href: '/stickers', label: 'Shop stickers' }}
+        />
+        <Fragment set:html={gridHTML(catalog, stickers)} />
+      </div>
+    </section>
+  )
+}

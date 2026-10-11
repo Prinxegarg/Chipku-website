@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/home/Hero.astro';
+import CategoryTiles from '../components/home/CategoryTiles.astro';
+import Collections from '../components/home/Collections.astro';
+import Featured from '../components/home/Featured.astro';
+import PhotoPrints from '../components/home/PhotoPrints.astro';
+import CustomPrints from '../components/home/CustomPrints.astro';
+import Stickers from '../components/home/Stickers.astro';
+import ReviewsStrip from '../components/home/ReviewsStrip.astro';
+import Details from '../components/home/Details.astro';
+import { getCatalog } from '../lib/catalog/index.ts';
+
+const catalog = await getCatalog();
+---
+
+<Base>
+  <Hero slides={catalog.hero} preview={catalog.mode === 'preview'} />
+  <CategoryTiles catalog={catalog} />
+  <Collections catalog={catalog} />
+  <Featured catalog={catalog} />
+  <PhotoPrints catalog={catalog} />
+  <CustomPrints catalog={catalog} />
+  <Stickers catalog={catalog} />
+  <ReviewsStrip catalog={catalog} />
+  <Details catalog={catalog} />
+</Base>

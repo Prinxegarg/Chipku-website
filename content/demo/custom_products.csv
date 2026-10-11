@@ -1,0 +1,4 @@
+custom_id,title,finished_size,photo_area,print_width_mm,print_height_mm,photo_width_mm,photo_height_mm,description,mockup_image_url,alt_text,cta_label,cta_url,sort_order,active
+custom-poster,Custom poster,21 × 29.7 cm,,210,297,,,Your photo or design as a poster.,,,Order on Instagram,,10,TRUE
+big-polaroid,Big polaroid,8.9 × 10.7 cm,7.9 × 7.9 cm,89,107,79,79,A square photo window with a classic white border.,,,Order on Instagram,,20,TRUE
+phone-case-polaroid,Phone-case polaroid,6.4 × 7.6 cm,5.7 × 6.1 cm,64,76,57,61,Small enough to slip behind a clear phone case.,,,Order on Instagram,,30,TRUE

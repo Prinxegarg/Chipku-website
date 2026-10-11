@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import Listing from '../components/product/Listing.astro';
+import { TYPE_ROUTES, getCatalog } from '../lib/catalog/index.ts';
+import type { ProductType } from '../lib/types.ts';
+
+export function getStaticPaths() {
+  return [
+    { params: { listing: 'posters' }, props: { kind: 'poster' } },
+    { params: { listing: 'photo-prints' }, props: { kind: 'polaroid' } },
+    { params: { listing: 'stickers' }, props: { kind: 'sticker' } },
+    { params: { listing: 'new-arrivals' }, props: { kind: 'new' } },
+    { params: { listing: 'shop' }, props: { kind: 'all' } },
+  ];
+}
+
+const { kind } = Astro.props as { kind: ProductType | 'new' | 'all' };
+const catalog = await getCatalog();
+const crumbs = [{ href: '/', label: 'Home' }];
+
+let title: string;
+let intro: string | undefined;
+let highlight: string | undefined;
+let products = catalog.products;
+let filters: { type?: boolean; category?: boolean; option?: boolean } = { option: true };
+let subCategories = [] as typeof catalog.categories;
+
+if (kind === 'new') {
+  title = 'New arrivals';
+  highlight = 'New';
+  intro = 'The latest additions to CHIPKU.';
+  products = catalog.products.filter((p) => p.isNew);
+  filters = { type: true, category: true, option: true };
+} else if (kind === 'all') {
+  title = 'Shop all';
+  highlight = 'all';
+  intro = 'Posters, photo prints and stickers that belong together.';
+  filters = { type: true, category: true, option: true };
+} else {
+  const r = TYPE_ROUTES[kind];
+  title = r.title;
+  intro = r.intro;
+  products = catalog.products.filter((p) => p.type === kind);
+  filters = { category: true, option: true };
+  subCategories = catalog.categories.filter((c) => (c.productType ?? 'poster') === kind && products.some((p) => p.categoryIds.includes(c.id)));
+}
+---
+
+<Base title={title} description={intro}>
+  <Listing
+    catalog={catalog}
+    title={title}
+    highlight={highlight}
+    intro={intro}
+    products={products}
+    crumbs={crumbs}
+    filters={filters}
+    subCategories={subCategories}
+    defaultSort="featured"
+  />
+</Base>

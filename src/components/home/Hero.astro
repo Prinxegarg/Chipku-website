@@ -1,0 +1,126 @@
+---
+import { icons } from '../../lib/render/html.ts';
+import { HERO_WIDTHS, imageTransformOrigins, responsive } from '../../lib/images.ts';
+import type { HeroSlide } from '../../lib/types.ts';
+
+interface Props {
+  slides: HeroSlide[];
+  preview: boolean;
+}
+const { slides, preview } = Astro.props;
+const origins = imageTransformOrigins();
+const total = slides.length;
+const pad = (n: number) => String(n).padStart(2, '0');
+const isExternal = (u: string) => /^https:\/\//.test(u);
+---
+
+{
+  total > 0 && (
+    <section class="hero" aria-roledescription="carousel" aria-label="Featured" data-hero data-interval="7000">
+      <h1 class="sr-only">CHIPKU — Your walls need us. Posters, photo prints and stickers.</h1>
+      <div class="wrap">
+        <div class="hero__viewport">
+          <div class="hero__track" data-hero-track>
+            {slides.map((s, i) => {
+              const desk = s.desktopImage ? responsive(s.desktopImage, HERO_WIDTHS, origins) : null;
+              const mob = s.mobileImage ? responsive(s.mobileImage, HERO_WIDTHS.slice(0, 3), origins) : null;
+              return (
+                <div
+                  class="hero__slide"
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`${i + 1} of ${total}: ${s.headline}`}
+                  data-hero-slide
+                  inert={i === 0 ? undefined : true}
+                  aria-hidden={i === 0 ? undefined : 'true'}
+                >
+                  <div class="hero__copy">
+                    {s.eyebrow && <p class="hero__eyebrow">{s.eyebrow}</p>}
+                    <h2 class="hero__title">{s.headline}</h2>
+                    {s.body && <p class="hero__body">{s.body}</p>}
+                    <a
+                      class="btn btn--lg hero__cta"
+                      href={s.ctaUrl}
+                      {...(isExternal(s.ctaUrl) ? { rel: 'noopener', target: '_blank' } : {})}
+                    >
+                      {s.ctaLabel}
+                      <Fragment set:html={icons.arrow} />
+                    </a>
+                  </div>
+                  <div class:list={['hero__art', `hero__art--${s.layout}`]}>
+                    {desk ? (
+                      <picture>
+                        {mob && <source media="(max-width: 767px)" srcset={mob.srcset || mob.src} sizes="100vw" />}
+                        <img
+                          src={desk.src}
+                          srcset={desk.srcset || undefined}
+                          sizes="(min-width: 1024px) 60vw, 100vw"
+                          alt={s.alt}
+                          width="1600"
+                          height="1200"
+                          loading={i === 0 ? 'eager' : 'lazy'}
+                          fetchpriority={i === 0 ? 'high' : undefined}
+                          decoding="async"
+                          data-media
+                        />
+                      </picture>
+                    ) : (
+                      <div class="hero-ph" role="img" aria-label={preview ? `Hero ${pad(i + 1)} artwork placeholder` : 'Artwork coming soon'}>
+                        <div class="hero-ph__scene" aria-hidden="true">
+                          <span class="hp hp--a" />
+                          <span class="hp hp--b" />
+                          <span class="hp hp--c" />
+                          <span class="hp hp--d" />
+                          <span class="hp hp--e" />
+                          <span class="hp hp--f" />
+                        </div>
+                        {preview && (
+                          <span class="hero-ph__label" aria-hidden="true">
+                            Hero {pad(i + 1)} artwork<span class="hero-ph__size"> · 1600 × 1200 desktop / 900 × 800 mobile</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {total > 1 && (
+          <div class="hero__controls">
+            <button type="button" class="icon-btn icon-btn--round" data-hero-prev aria-label="Previous slide" set:html={icons.left} />
+            <button type="button" class="icon-btn icon-btn--round" data-hero-next aria-label="Next slide" set:html={icons.right} />
+            <p class="hero__count" aria-hidden="true">
+              <span data-hero-current>01</span> / {pad(total)}
+            </p>
+            <div class="hero__dots" role="group" aria-label="Choose a slide">
+              {slides.map((s, i) => (
+                <button
+                  type="button"
+                  class="hero__dot"
+                  data-hero-dot={i}
+                  aria-label={`Slide ${i + 1}: ${s.headline}`}
+                  aria-current={i === 0 ? 'true' : undefined}
+                >
+                  <span class="hero__dot-bar">
+                    <span class="hero__dot-fill" />
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button type="button" class="hero__toggle" data-hero-toggle aria-label="Pause slideshow" hidden>
+              <span class="hero__toggle-pause" set:html={icons.pause} />
+              <span class="hero__toggle-play" set:html={icons.play} />
+            </button>
+          </div>
+        )}
+        <p class="sr-only" aria-live="polite" aria-atomic="true" data-hero-live />
+      </div>
+    </section>
+  )
+}
+
+<script>
+  import '../../client/hero.ts';
+</script>

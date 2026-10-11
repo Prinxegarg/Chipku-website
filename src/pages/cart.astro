@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Your cart" noindex>
+  <nav class="crumbs wrap" aria-label="Breadcrumb">
+    <ol role="list">
+      <li><a href="/">Home</a></li>
+      <li><span aria-current="page">Cart</span></li>
+    </ol>
+  </nav>
+  <div class="wrap">
+    <header class="listing-head">
+      <h1 class="section-title" tabindex="-1" data-cart-title>Your cart <span class="muted" data-cart-page-count></span></h1>
+    </header>
+    <div class="page-cart" data-cart-page>
+      <div data-cart-page-body>
+        <div class="cart-loading" aria-hidden="true">
+          <div class="skeleton" style="height:96px"></div>
+          <div class="skeleton" style="height:96px"></div>
+        </div>
+      </div>
+      <aside class="page-cart__aside panel panel--paper" aria-label="Order summary" data-cart-page-summary hidden></aside>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { renderCartInto } from '../client/cart-ui.ts';
+  import { loadCatalog } from '../client/catalog.ts';
+  import { subscribe } from '../client/cart-store.ts';
+
+  const body = document.querySelector<HTMLElement>('[data-cart-page-body]')!;
+  const foot = document.querySelector<HTMLElement>('[data-cart-page-summary]')!;
+  const heading = document.querySelector<HTMLElement>('[data-cart-page-count]');
+
+  async function render() {
+    try {
+      const catalog = await loadCatalog();
+      renderCartInto({ body, foot, heading }, catalog, { suggestions: true });
+      foot.insertAdjacentHTML('afterbegin', '<h2 class="panel__title">Order summary</h2>');
+    } catch {
+      body.innerHTML = '<p class="notice notice--error" role="alert">We couldn\'t load your cart. Check your connection and refresh the page.</p>';
+    }
+  }
+  subscribe(() => void render());
+  void render();
+</script>
