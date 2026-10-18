@@ -16,7 +16,8 @@
     "docs:sheets": "node --experimental-strip-types scripts/sheet-docs.ts",
     "typecheck": "tsc --noEmit -p .",
     "functions:dev": "wrangler pages dev dist",
-    "check": "npm run typecheck && npm test && npm run check:content"
+    "check": "npm run typecheck && npm test && npm run check:content",
+    "dev:demo": "CHIPKU_SHEETS_CONFIG='{}' astro dev"
   },
   "dependencies": {
     "@fontsource/anton": "5.3.0",

@@ -1,0 +1,4 @@
+custom_product_id,title,print_width_cm,print_height_cm,photo_width_cm,photo_height_cm,mockup_url,alt_text,instagram_url,sort_order,active,notes
+custom-poster,Custom poster,21.00,29.70,,,,,https://www.instagram.com/chipku_shop/,1,TRUE,"Confirm printable area, margins and bleed in DMs."
+custom-big,Big polaroid,8.90,10.70,7.90,7.90,,,https://www.instagram.com/chipku_shop/,2,TRUE,Custom orders handled in Instagram DMs.
+custom-phone,Phone-case polaroid,6.40,7.60,5.70,6.10,,,https://www.instagram.com/chipku_shop/,3,TRUE,Custom orders handled in Instagram DMs.

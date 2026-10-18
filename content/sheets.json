@@ -1,5 +1,20 @@
 {
-  "$comment": "Google Sheets connection. Leave publishedUrl empty to build the preview catalogue from content/demo. Each tab value is either the tab's gid (number after #gid= in the sheet URL) or a full 'Publish to web' CSV link. Use the CHIPKU menu in the sheet (integrations/google-apps-script) to print this block for you. The CHIPKU_SHEETS_CONFIG environment variable (same JSON) overrides this file.",
-  "publishedUrl": "",
-  "tabs": {}
+  "$comment": "Google Sheets connection. spreadsheetUrl = the sheet shared as 'Anyone with the link can view' (read via Google's CSV export); or use publishedUrl for a 'Publish to web' link. tabs maps each website tab to its gid (the number after #gid= in the sheet URL). Print this block from the sheet with CHIPKU ▸ Show website sheet config. The CHIPKU_SHEETS_CONFIG environment variable (same JSON) overrides this file; set it to {} to build the demo catalogue instead.",
+  "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/184K5rKtYQ8NdIgBJhMv5akMgkv-uiH6LcUD3bywiCiQ/edit",
+  "tabs": {
+    "posters": "1369126925",
+    "stickers": "1960306891",
+    "polaroids": "896410203",
+    "variants": "183858458",
+    "media": "524220178",
+    "categories": "1924376355",
+    "product_categories": "1919215950",
+    "hero": "1762428986",
+    "reviews": "1425533746",
+    "review_media": "1700693283",
+    "custom_products": "2002918665",
+    "offers": "1680134356",
+    "settings": "1703627582",
+    "recommendations": "41708624"
+  }
 }

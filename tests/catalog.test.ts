@@ -1,3 +1,5 @@
+// Tests always use the bundled preview catalogue, whatever content/sheets.json points at.
+process.env.CHIPKU_SHEETS_CONFIG = '{}';
 import { describe, expect, it } from 'vitest';
 import { buildCatalog, ContentError } from '../src/lib/catalog/build.ts';
 import { createTabSource, resolveTabUrl } from '../src/lib/catalog/source.ts';

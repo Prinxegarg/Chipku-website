@@ -56,6 +56,8 @@ export interface Product {
   badge?: string;
   trending: boolean;
   bestseller: boolean;
+  /** Merchant-picked for "Find your next favourite". */
+  curated: boolean;
   isNew: boolean;
   sortOrder: number;
   tags: string[];
@@ -238,6 +240,7 @@ export interface ClientProduct {
   badge?: string;
   trending: boolean;
   bestseller: boolean;
+  curated?: boolean;
   isNew: boolean;
   sortOrder: number;
   tags: string[];

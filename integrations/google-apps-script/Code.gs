@@ -17,6 +17,7 @@ var TAB_KEYS = {
   'hero banner': 'hero', 'hero': 'hero', 'hero slides': 'hero',
   'posters': 'posters', 'stickers': 'stickers', 'polaroids': 'polaroids', 'photo prints': 'polaroids',
   'variants': 'variants', 'media': 'media', 'categories': 'categories', 'collections': 'categories',
+  'product categories': 'product_categories',
   'offers': 'offers', 'settings': 'settings', 'offer settings': 'settings',
   'reviews': 'reviews', 'review media': 'review_media',
   'custom products': 'custom_products', 'recommendations': 'recommendations',
@@ -87,13 +88,13 @@ function showWebsiteConfig() {
     else if (sh.getName() !== 'Orders') unknown.push(sh.getName());
   });
   var config = {
-    publishedUrl: 'PASTE the link from File → Share → Publish to web (Entire document, CSV)',
+    spreadsheetUrl: ss.getUrl(),
     tabs: tabs
   };
   var html =
-    '<p style="font:14px Arial">1. File → Share → <b>Publish to web</b> → Entire document → <b>Comma-separated values (.csv)</b> → Publish. Copy the link into <code>publishedUrl</code> below.</p>' +
-    '<p style="font:14px Arial">2. In Cloudflare Pages → Settings → Environment variables, set <b>CHIPKU_SHEETS_CONFIG</b> to this JSON (and <b>CHIPKU_REQUIRE_LIVE</b> = 1):</p>' +
-    '<textarea style="width:100%;height:220px;font:12px monospace">' + JSON.stringify(config, null, 2) + '</textarea>' +
+    '<p style="font:14px Arial">1. Share → General access → <b>Anyone with the link → Viewer</b> (the website reads the tabs through Google\'s CSV export).</p>' +
+    '<p style="font:14px Arial">2. Put this JSON in <code>content/sheets.json</code>, or in Cloudflare Pages → Settings → Environment variables as <b>CHIPKU_SHEETS_CONFIG</b> (and set <b>CHIPKU_REQUIRE_LIVE</b> = 1):</p>' +
+    '<textarea style="width:100%;height:240px;font:12px monospace">' + JSON.stringify(config, null, 2) + '</textarea>' +
     (unknown.length ? '<p style="font:13px Arial;color:#595959">Tabs not used by the website: ' + unknown.join(', ') + '</p>' : '');
   SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(html).setWidth(560).setHeight(420), 'Website sheet config');
 }

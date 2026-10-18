@@ -1,33 +1,52 @@
 /**
- * Build-time catalogue access for pages. The catalogue is loaded once per build.
+ * Catalogue access for pages. A production build loads it once. During `npm run dev`
+ * it is re-read from the sheet at most every 20 seconds, so sheet edits appear on the
+ * next page refresh; if a refresh fails, the last good catalogue keeps being used.
  */
 import { buildCatalog, ContentError } from './build.ts';
 import { createTabSource } from './source.ts';
 import { imageTransformOrigins } from '../images.ts';
 import type { Catalog, Category, ClientCatalog, ClientProduct, Product, ProductType } from '../types.ts';
 
+const DEV_REFRESH_MS = 20_000;
 let cached: Promise<Catalog> | null = null;
+let loadedAt = 0;
+let lastGood: Catalog | null = null;
+
+async function load(): Promise<Catalog> {
+  const source = await createTabSource();
+  try {
+    const catalog = await buildCatalog(source);
+    const tag = catalog.mode === 'preview' ? 'PREVIEW catalogue' : 'LIVE catalogue';
+    console.log(
+      `[chipku] ${tag} from ${source.describe()}: ${catalog.products.length} products, version ${catalog.version}` +
+        (catalog.warnings.length ? `, ${catalog.warnings.length} warning(s)` : ''),
+    );
+    for (const w of catalog.warnings) console.warn(`[chipku] warning: ${w}`);
+    lastGood = catalog;
+    return catalog;
+  } catch (err) {
+    if (err instanceof ContentError) {
+      for (const w of err.warnings) console.warn(`[chipku] warning: ${w}`);
+    }
+    throw err;
+  }
+}
 
 export function getCatalog(): Promise<Catalog> {
+  const dev = Boolean(import.meta.env?.DEV);
+  if (cached && dev && Date.now() - loadedAt > DEV_REFRESH_MS) {
+    const previous = lastGood;
+    loadedAt = Date.now();
+    cached = load().catch((err) => {
+      if (!previous) throw err;
+      console.error(`[chipku] sheet refresh failed — keeping the last good catalogue.\n${(err as Error).message}`);
+      return previous;
+    });
+  }
   if (!cached) {
-    cached = (async () => {
-      const source = await createTabSource();
-      try {
-        const catalog = await buildCatalog(source);
-        const tag = catalog.mode === 'preview' ? 'PREVIEW catalogue' : 'LIVE catalogue';
-        console.log(
-          `[chipku] ${tag} from ${source.describe()}: ${catalog.products.length} products, version ${catalog.version}` +
-            (catalog.warnings.length ? `, ${catalog.warnings.length} warning(s)` : ''),
-        );
-        for (const w of catalog.warnings) console.warn(`[chipku] warning: ${w}`);
-        return catalog;
-      } catch (err) {
-        if (err instanceof ContentError) {
-          for (const w of err.warnings) console.warn(`[chipku] warning: ${w}`);
-        }
-        throw err;
-      }
-    })();
+    loadedAt = Date.now();
+    cached = load();
   }
   return cached;
 }
@@ -108,11 +127,12 @@ export function toClientProduct(p: Product): ClientProduct {
     badge: p.badge,
     trending: p.trending,
     bestseller: p.bestseller,
+    curated: p.curated,
     isNew: p.isNew,
     sortOrder: p.sortOrder,
     tags: p.tags,
-    images: p.media
-      .filter((m) => !m.variantId)
+    // Card images: product-wide photos first; if every photo is tied to an option, use those.
+    images: (p.media.some((m) => !m.variantId) ? p.media.filter((m) => !m.variantId) : p.media)
       .slice(0, 2)
       .map((m) => ({ url: m.url, alt: m.alt, fit: m.fit, focal: m.focal, role: m.role })),
     variants: p.variants.map((v) => ({

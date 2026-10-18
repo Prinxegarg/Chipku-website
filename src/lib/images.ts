@@ -4,7 +4,8 @@
  * Images live in Cloudflare R2 behind a custom domain (e.g. https://img.chipku.in).
  * When that domain is listed in CHIPKU_IMAGE_TRANSFORMS and Cloudflare Image
  * Transformations is enabled on the zone, we request right-sized WebP/AVIF through
- * /cdn-cgi/image/. Any other URL is used exactly as supplied.
+ * /cdn-cgi/image/. Cloudinary URLs (res.cloudinary.com/…/image/upload/…) are resized
+ * with a c_limit,w_… step. Any other URL is used exactly as supplied.
  */
 
 /** Server side: read allowed transform origins from the environment. */
@@ -21,13 +22,18 @@ export const GALLERY_WIDTHS = [480, 720, 960, 1280, 1600];
 export const HERO_WIDTHS = [640, 960, 1280, 1600, 2000];
 
 export function transformUrl(url: string, width: number, origins: string[], quality = 82): string {
-  if (!url || origins.length === 0) return url;
+  if (!url) return url;
   let parsed: URL;
   try {
     parsed = new URL(url);
   } catch {
     return url;
   }
+  // Cloudinary delivery URLs resize themselves: chain a width-limit step after /upload/.
+  if (parsed.hostname === 'res.cloudinary.com' && /\/(image)\/upload\//.test(parsed.pathname) && !/\/upload\/c_limit,w_\d+\//.test(parsed.pathname)) {
+    return `${parsed.origin}${parsed.pathname.replace('/upload/', `/upload/c_limit,w_${width}/`)}${parsed.search}`;
+  }
+  if (origins.length === 0) return url;
   if (!origins.includes(parsed.origin) || parsed.pathname.startsWith('/cdn-cgi/')) return url;
   const opts = `width=${width},quality=${quality},format=auto,fit=scale-down`;
   return `${parsed.origin}/cdn-cgi/image/${opts}${parsed.pathname}${parsed.search}`;

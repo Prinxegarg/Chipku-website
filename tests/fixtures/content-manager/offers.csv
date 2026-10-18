@@ -1,0 +1,6 @@
+offer_id,type,label,paid_qty,free_qty,threshold,threshold_operator,percent_off,eligible_product_types,eligible_category_ids,eligible_variant_ids,stacking_group,priority,active,starts_at,ends_at,terms
+buyget-1,buy_get,Buy 1 Get 1,1,1,,,,posters,,,chipku,1,FALSE,,,Choose 2 eligible posters. Get 1 extra free. Proposed lowest-priced free rule.
+buyget-2,buy_get,Buy 2 Get 3,2,3,,,,posters,,,chipku,2,FALSE,,,Choose 5 eligible posters. Get 3 extra free. Proposed lowest-priced free rule.
+buyget-3,buy_get,Buy 3 Get 4,3,4,,,,posters,,,chipku,3,FALSE,,,Choose 7 eligible posters. Get 4 extra free. Proposed lowest-priced free rule.
+buyget-4,buy_get,Buy 4 Get 6,4,6,,,,posters,,,chipku,4,FALSE,,,Choose 10 eligible posters. Get 6 extra free. Proposed lowest-priced free rule.
+spend-10,percentage,10% off above ₹399,,,399.00,>,10,posters|stickers|polaroids,,,chipku,5,FALSE,,,Stacks after Buy/Get. Strictly greater than ₹399; excludes shipping and tax.

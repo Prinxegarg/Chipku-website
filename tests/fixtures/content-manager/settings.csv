@@ -1,0 +1,9 @@
+setting,value,confirmation_status,notes
+subtotal_basis,after_buy_get_before_percentage,proposed,Exclude shipping and tax.
+discount_order,buy_get_then_percentage,confirmed,10% combines with Buy/Get.
+free_item_rule,lowest_priced,proposed,Lowest-priced eligible units are free.
+repeat_policy,highest_tier_once_per_pool,proposed,Remaining units are paid.
+buy_get_pool,all_eligible_posters,proposed,Confirm cross-category and variant eligibility before launch.
+currency,INR,preview_default,Confirm production currency.
+timezone,Asia/Kolkata,preview_default,Offer start/end interpretation.
+integration_status,not_connected,confirmed,No payment or sheet synchronisation implemented.

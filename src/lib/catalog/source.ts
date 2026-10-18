@@ -2,8 +2,11 @@
  * Where tab CSVs come from.
  *
  * - Preview: content/demo/<tab>.csv (an isolated demo catalogue with ₹69 example prices).
- * - Live: Google Sheets "Publish to web" CSV links configured in content/sheets.json
- *   or the CHIPKU_SHEETS_CONFIG environment variable.
+ * - Live: Google Sheets configured in content/sheets.json or CHIPKU_SHEETS_CONFIG — either
+ *   a sheet shared "Anyone with the link can view" (spreadsheetUrl, read through Google's
+ *   CSV export) or a "Publish to web" link (publishedUrl).
+ * - Snapshot: CHIPKU_SHEETS_SNAPSHOT=<folder of <tab>.csv files> builds a live catalogue
+ *   from saved CSVs (offline testing, reproducing a build).
  *
  * A live build never falls back to demo data. If a configured tab cannot be fetched
  * the build fails, and Cloudflare Pages keeps serving the last good deployment.
@@ -15,6 +18,9 @@ import { TABS, type TabKey } from './schema.ts';
 import type { CatalogMode } from '../types.ts';
 
 export interface SheetsConfig {
+  /** Normal sheet link (…/spreadsheets/d/<id>/edit…) shared "Anyone with the link can view". */
+  spreadsheetUrl?: string;
+  /** "Publish to web" link (…/spreadsheets/d/e/2PACX-…/pub…). */
   publishedUrl?: string;
   tabs?: Partial<Record<TabKey, string | number | null>>;
 }
@@ -59,7 +65,13 @@ export function resolveTabUrl(cfg: SheetsConfig, value: string | number): string
     return url.toString();
   }
   if (!/^\d+$/.test(v)) throw new Error(`Tab value "${v}" must be a gid number or an https:// CSV link.`);
-  if (!cfg.publishedUrl) throw new Error(`Tab gid ${v} needs "publishedUrl" in the sheets config.`);
+
+  // Link-shared sheet: https://docs.google.com/spreadsheets/d/<id>/export?format=csv&gid=<gid>
+  const shared = (cfg.spreadsheetUrl ?? '').match(/\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/);
+  if (shared) {
+    return `https://docs.google.com/spreadsheets/d/${shared[1]}/export?format=csv&gid=${v}`;
+  }
+  if (!cfg.publishedUrl) throw new Error(`Tab gid ${v} needs "spreadsheetUrl" or "publishedUrl" in the sheets config.`);
   const base = new URL(cfg.publishedUrl.trim());
   // Accept .../pubhtml, .../pub?output=csv etc. and normalise to .../pub
   base.pathname = base.pathname.replace(/\/pub(html)?$/, '/pub');
@@ -80,7 +92,7 @@ async function fetchCsv(url: string, tab: string): Promise<string> {
       const type = res.headers.get('content-type') ?? '';
       const text = await res.text();
       if (type.includes('text/html') || /^\s*<!doctype html/i.test(text)) {
-        throw new Error('received an HTML page instead of CSV — publish the tab to the web as CSV');
+        throw new Error('received a web page instead of CSV — share the sheet as "Anyone with the link can view" (or publish it to the web as CSV)');
       }
       return text;
     } catch (err) {
@@ -92,6 +104,17 @@ async function fetchCsv(url: string, tab: string): Promise<string> {
 }
 
 export async function createTabSource(): Promise<TabSource> {
+  const snapshot = process.env.CHIPKU_SHEETS_SNAPSHOT;
+  if (snapshot) {
+    return {
+      mode: 'live',
+      describe: () => `sheet snapshot (${snapshot})`,
+      async read(tab) {
+        const file = join(snapshot, `${tab}.csv`);
+        return existsSync(file) ? readFile(file, 'utf8') : null;
+      },
+    };
+  }
   const cfg = await loadConfig();
   const requireLive = process.env.CHIPKU_REQUIRE_LIVE === '1' || process.env.CHIPKU_REQUIRE_LIVE === 'true';
 

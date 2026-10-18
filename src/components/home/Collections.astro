@@ -12,12 +12,12 @@ interface Props {
 const { catalog } = Astro.props;
 const preview = catalog.mode === 'preview';
 const collections = catalog.categories.filter((c) => c.featured);
+// "Trending in…" only when products are actually flagged trending; otherwise a neutral heading.
+const anyTrending = collections.some((c) => inCategory(catalog, c.id).some((p) => p.trending && isPurchasable(p)));
 const tabs = collections
   .map((c) => {
-    const items = inCategory(catalog, c.id)
-      .filter(isPurchasable)
-      .sort((a, b) => Number(b.trending) - Number(a.trending) || a.sortOrder - b.sortOrder)
-      .slice(0, 4);
+    const pool = inCategory(catalog, c.id).filter(isPurchasable);
+    const items = (anyTrending ? pool.filter((p) => p.trending) : pool).sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 4);
     return {
       id: c.id,
       label: c.title,
@@ -27,13 +27,14 @@ const tabs = collections
     };
   })
   .filter((t) => t.count > 0);
+const rowTitle = anyTrending ? 'Trending in…' : 'Explore the collections';
 ---
 
 {
   collections.length > 0 && (
     <section class="section collections" aria-labelledby="col-title">
       <div class="wrap">
-        <SectionHead id="col-title" title="Shop by collection" highlight="collection" sub="Find your vibe — then see what's trending in it." />
+        <SectionHead id="col-title" title="Shop by collection" highlight="collection" sub={anyTrending ? "Find your vibe — then see what's trending in it." : 'Find your vibe.'} />
         <ul class="col-tiles" role="list">
           {collections.map((c, i) => (
             <li>
@@ -59,8 +60,8 @@ const tabs = collections
         </ul>
         {tabs.length > 0 && (
           <div class="collections__trending">
-            <h3 class="sub-title">Trending in…</h3>
-            <Tabs items={tabs} label="Trending posters by collection" idPrefix="col" />
+            <h3 class="sub-title">{rowTitle}</h3>
+            <Tabs items={tabs} label={anyTrending ? 'Trending posters by collection' : 'Posters by collection'} idPrefix="col" />
           </div>
         )}
       </div>

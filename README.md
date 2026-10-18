@@ -4,7 +4,7 @@ Posters, photo prints and stickers. **Your walls need us.**
 
 A fast, static storefront (Astro) for Cloudflare Pages. Product content comes from Google Sheets, images from Cloudflare R2, and checkout runs through Razorpay via small Pages Functions that re-price every order on the server.
 
-> **Status: design preview.** Without a connected sheet, the site builds from the demo catalogue in `content/demo/`. That catalogue has placeholder images, neutral product names and ₹69 example prices, and the site marks it with a "Preview" strip and `noindex`. Checkout is closed in preview. See [docs/SETUP.md](docs/SETUP.md) to go live.
+> **Status: connected to the CHIPKU-Content-Manager Google Sheet** (`content/sheets.json`). `npm run dev` shows the products in the sheet, and edits appear on the next page refresh. `npm run dev:demo` shows the demo catalogue instead: placeholder images and ₹69 example prices, marked "Preview" and `noindex`. Checkout stays closed until Razorpay and shipping are configured. See [docs/SETUP.md](docs/SETUP.md).
 
 ## What's included
 
@@ -23,11 +23,12 @@ A fast, static storefront (Astro) for Cloudflare Pages. Product content comes fr
 
 ```bash
 npm install
-npm run dev             # local dev server (preview catalogue)
+npm run dev             # local dev server, live from the Google Sheet
+npm run dev:demo        # local dev server with the demo catalogue
 npm run build           # static build → dist/
 npm run preview         # serve dist/ on :4321
 npm test                # unit tests: offers, cart, catalogue validation, checkout API
-npm run test:e2e        # browser checks (needs Chromium; CHROMIUM_PATH=…)
+npm run test:e2e        # browser checks against a demo build (CHIPKU_SHEETS_CONFIG='{}' npm run build && npm run preview)
 npm run typecheck
 npm run check:content   # validate sheet content without building
 npm run docs:sheets     # regenerate docs/GOOGLE-SHEETS.md from the schema

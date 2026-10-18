@@ -62,6 +62,7 @@ One row per poster design.
 | `badge` |  | One short factual label, e.g. New or Customisable. Leave blank for none. | `New` |
 | `trending` |  | TRUE to show in Trending. | `TRUE` |
 | `bestseller` |  | TRUE to show in Bestsellers — only when your sales data supports it. | `FALSE` |
+| `curated` |  | TRUE to show in “Our picks” under Find your next favourite. | `TRUE` |
 | `new_arrival` |  | TRUE to list under New arrivals. | `TRUE` |
 | `tags` |  | Search keywords, separated by commas. | `football, black and white` |
 | `sort_order` |  | Lower numbers appear first. | `10` |
@@ -88,6 +89,7 @@ One row per sticker product.
 | `badge` |  | One short factual label, e.g. New or Customisable. Leave blank for none. | `New` |
 | `trending` |  | TRUE to show in Trending. | `TRUE` |
 | `bestseller` |  | TRUE to show in Bestsellers — only when your sales data supports it. | `FALSE` |
+| `curated` |  | TRUE to show in “Our picks” under Find your next favourite. | `TRUE` |
 | `new_arrival` |  | TRUE to list under New arrivals. | `TRUE` |
 | `tags` |  | Search keywords, separated by commas. | `football, black and white` |
 | `sort_order` |  | Lower numbers appear first. | `10` |
@@ -114,6 +116,7 @@ Ready-made photo prints (shown as “Photo prints” on the site).
 | `badge` |  | One short factual label, e.g. New or Customisable. Leave blank for none. | `New` |
 | `trending` |  | TRUE to show in Trending. | `TRUE` |
 | `bestseller` |  | TRUE to show in Bestsellers — only when your sales data supports it. | `FALSE` |
+| `curated` |  | TRUE to show in “Our picks” under Find your next favourite. | `TRUE` |
 | `new_arrival` |  | TRUE to list under New arrivals. | `TRUE` |
 | `tags` |  | Search keywords, separated by commas. | `football, black and white` |
 | `sort_order` |  | Lower numbers appear first. | `10` |
@@ -150,6 +153,7 @@ Extra product images, one row per image. Order controls the gallery and the hove
 | `mobile_image_url` |  | Optional mobile crop. |  |
 | `alt_text` |  | Image description. |  |
 | `sort_order` |  | Lower numbers appear first. The product-row image is always first. |  |
+| `fit` |  | contain (show the whole image) or cover (fill and crop). Blank = based on role. | `contain` |
 | `focal_point` |  | For cropped photos: horizontal% vertical%. | `50% 35%` |
 
 ## Categories
@@ -169,6 +173,16 @@ Collections such as Sports, Music, Aesthetics and Movies.
 | `show_on_home` |  | TRUE to show in “Shop by collection”. |  |
 | `sort_order` |  | Lower numbers appear first. |  |
 | `active` |  | FALSE hides it. Blank = TRUE. |  |
+
+## Product categories
+
+Optional extra product ↔ category links, one row per pair (in addition to primary_category_id).
+
+| Column | Required | What it does | Example |
+| --- | --- | --- | --- |
+| `product_id` | Yes | Product ID. |  |
+| `category_id` | Yes | Category ID from the Categories tab. |  |
+| `sort_order` |  | Not used yet. |  |
 
 ## Offers
 

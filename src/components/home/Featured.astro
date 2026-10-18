@@ -10,9 +10,11 @@ interface Props {
 }
 const { catalog } = Astro.props;
 // Selections come only from merchant flags in the sheet — never inferred popularity.
+const picks = catalog.products.filter((p) => p.curated && isPurchasable(p)).slice(0, 8);
 const trending = catalog.products.filter((p) => p.trending && isPurchasable(p)).slice(0, 8);
 const best = catalog.products.filter((p) => p.bestseller && isPurchasable(p)).slice(0, 8);
 const items = [
+  picks.length && { id: 'picks', label: 'Our picks', html: gridHTML(catalog, picks) },
   trending.length && { id: 'trending', label: 'Trending', html: gridHTML(catalog, trending) },
   best.length && { id: 'bestsellers', label: 'Bestsellers', html: gridHTML(catalog, best) },
 ].filter(Boolean) as { id: string; label: string; html: string }[];

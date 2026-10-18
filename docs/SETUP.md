@@ -21,22 +21,20 @@ Without any sheet configured the build publishes the **preview catalogue** (demo
 
 ## 2. Connect Google Sheets
 
-1. Create one Google Sheet. Import each CSV from `content/demo/` as its own tab (**File → Import → Upload → Insert new sheet**). Replace the demo rows with real products — see [GOOGLE-SHEETS.md](GOOGLE-SHEETS.md) for every column. You can also keep separate spreadsheets (e.g. one per product type): each tab can use its own published link.
-2. **File → Share → Publish to web → Entire document → Comma-separated values (.csv) → Publish.** Everything in this spreadsheet becomes readable through the published link, so never keep private data (orders, customer details, review contact info) in it.
-3. **Extensions → Apps Script**, paste `integrations/google-apps-script/Code.gs`, save, reload the sheet. A **CHIPKU** menu appears.
-4. **CHIPKU → Show website sheet config** prints JSON like:
-   ```json
-   { "publishedUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-…/pubhtml", "tabs": { "hero": "0", "posters": "123456", … } }
-   ```
-   Paste your published link into `publishedUrl` and set the whole JSON as the Cloudflare variable **`CHIPKU_SHEETS_CONFIG`** (or commit it to `content/sheets.json`). A tab can also be a full published CSV link instead of a gid.
-5. Run a check locally if you like: `CHIPKU_SHEETS_CONFIG='…' npm run check:content`.
+The site is already connected to the **CHIPKU-Content-Manager** sheet (`content/sheets.json`). It reads each tab through Google's CSV export, so the sheet must stay shared as **Anyone with the link → Viewer**. Anyone who has the link can read every tab, so keep orders, customer contact details and unapproved reviews somewhere else.
+
+- Column reference: [GOOGLE-SHEETS.md](GOOGLE-SHEETS.md). The importer also accepts the Content Manager's own names (`size_label`, `fit`, `mockup_url`, sizes in cm, `percentage` offers, `>` operators, plural product types, the "Hero slides", "Offer settings" and "Product categories" tabs).
+- Adding or renaming tabs: **Extensions → Apps Script**, paste `integrations/google-apps-script/Code.gs`, save and reload the sheet. **CHIPKU → Show website sheet config** prints the `spreadsheetUrl` + tab-gid JSON for `content/sheets.json` or the Cloudflare variable **`CHIPKU_SHEETS_CONFIG`**.
+- Alternative: **File → Share → Publish to web** (CSV) and use `publishedUrl` instead of `spreadsheetUrl`.
+- Check the sheet without building: `npm run check:content`. View the demo catalogue instead of the sheet: `npm run dev:demo`.
 
 ### How changes appear on the site
 
 - Edit the sheet → **CHIPKU → Publish website now** (or the optional daily schedule). This calls a Cloudflare **deploy hook** (Pages → Settings → Builds → Deploy hooks → create one, then **CHIPKU → Set Cloudflare deploy hook**).
 - The build downloads every tab, validates it, and publishes everything together (prices, cards, suggestions, offers and the checkout price list all change at once). Typical time: a few minutes.
 - If a check fails, the build stops and **the previous site stays live**. The error is shown in Cloudflare Pages → Deployments (enable deployment-failure email notifications there). Warnings are listed at `/data/content-report.json`.
-- Google can take up to ~5 minutes to refresh "published to web" data after an edit. If a very recent change is missing, publish again a few minutes later.
+- With `npm run dev` on your computer, sheet edits show up on the next page refresh (re-read at most every 20 seconds).
+- With a "Publish to web" link instead of link sharing, Google can take up to ~5 minutes to refresh the data after an edit.
 
 ## 3. Images on Cloudflare R2
 

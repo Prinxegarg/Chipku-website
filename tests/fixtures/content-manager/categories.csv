@@ -1,0 +1,8 @@
+category_id,title,slug,parent_id,image_url,alt_text,sort_order,active
+posters,Posters,posters,,,,1,TRUE
+polaroids,Photo prints,polaroids,,,,2,TRUE
+stickers,Stickers,stickers,,,,3,TRUE
+sports,Sports,sports,posters,,,4,TRUE
+music,Music,music,posters,,,5,TRUE
+aesthetics,Aesthetics,aesthetics,posters,,,6,TRUE
+movies,Movies,movies,posters,,,7,TRUE

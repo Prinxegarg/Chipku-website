@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { csvToRows, type SheetRow } from '../csv.ts';
 import { parsePriceToPaise } from '../money.ts';
 import { TABS, type TabKey } from './schema.ts';
+import { normaliseTab, rootTypeOf } from './aliases.ts';
 import type { TabSource } from './source.ts';
 import type {
   BuyGetTier,
@@ -160,6 +161,7 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
   const preview = mode === 'preview';
 
   const raw = new Map<TabKey, SheetRow[]>();
+  const headersOf = new Map<TabKey, string[]>();
   const texts = await Promise.all(TABS.map(async (t) => [t.key, await source.read(t.key)] as const));
   for (const [key, text] of texts) {
     const spec = TABS.find((t) => t.key === key)!;
@@ -168,7 +170,9 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
       raw.set(key, []);
       continue;
     }
-    const { headers, rows } = csvToRows(text);
+    const parsed = csvToRows(text);
+    const { headers, rows } = normaliseTab(key, parsed.headers, parsed.rows);
+    headersOf.set(key, headers);
     if (rows.length > 0) {
       for (const col of spec.columns.filter((c) => c.required)) {
         if (!headers.includes(col.name)) issues.error(spec.title, null, `missing required column "${col.name}".`);
@@ -223,10 +227,18 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
   const categories: Category[] = [];
   const catIds = new Set<string>();
   const catSlugs = new Set<string>();
+  // "posters" / "polaroids" / "stickers" rows describe site sections, which already exist.
+  const rootCats = new Map<string, ProductType>();
+  const hasShowOnHome = (headersOf.get('categories') ?? []).includes('show_on_home');
   for (const r of rows('categories')) {
     const id = s(r, 'category_id').toLowerCase();
     if (!id) continue;
     if (!bool(s(r, 'active'), true)) continue;
+    const root = rootTypeOf(id);
+    if (root && !s(r, 'parent_id')) {
+      rootCats.set(id, root);
+      continue;
+    }
     if (catIds.has(id)) {
       issues.error('Categories', r.__row, `duplicate category_id "${id}".`);
       continue;
@@ -238,7 +250,8 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
     }
     const slug = slugify(s(r, 'slug') || title);
     if (catSlugs.has(slug)) issues.error('Categories', r.__row, `duplicate slug "${slug}".`);
-    const pt = s(r, 'product_type').toLowerCase();
+    const parentRaw = s(r, 'parent_id').toLowerCase();
+    const pt = (rootTypeOf(s(r, 'product_type')) ?? s(r, 'product_type').toLowerCase()) || rootCats.get(parentRaw) || rootTypeOf(parentRaw) || '';
     if (pt && !PRODUCT_TYPES.includes(pt as ProductType)) {
       issues.warn('Categories', r.__row, `unknown product_type "${pt}".`);
     }
@@ -249,13 +262,14 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
       id,
       title,
       slug,
-      parentId: s(r, 'parent_id').toLowerCase() || undefined,
+      parentId: parentRaw && !rootTypeOf(parentRaw) ? parentRaw : undefined,
       productType: PRODUCT_TYPES.includes(pt as ProductType) ? (pt as ProductType) : undefined,
       description: s(r, 'description') || undefined,
       image: img
         ? { id: `cat-${id}`, url: img, alt: s(r, 'alt_text'), role: 'lifestyle', fit: 'cover' }
         : undefined,
-      featured: bool(s(r, 'show_on_home'), false),
+      // Without a show_on_home column, collections inside a product type are featured.
+      featured: hasShowOnHome ? bool(s(r, 'show_on_home'), false) : Boolean(pt && parentRaw),
       sortOrder: int(s(r, 'sort_order')) ?? 1000,
     });
   }
@@ -309,6 +323,7 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
       const extra = idList(s(r, 'category_ids'));
       const cats = [...new Set([primary, ...extra].filter(Boolean))].filter((c) => {
         if (catIds.has(c)) return true;
+        if (rootCats.has(c) || rootTypeOf(c)) return false;
         issues.warn(title, r.__row, `${id}: unknown category "${c}" ignored.`);
         return false;
       });
@@ -340,6 +355,7 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
         badge: badge || undefined,
         trending: bool(s(r, 'trending'), false),
         bestseller: bool(s(r, 'bestseller'), false),
+        curated: bool(s(r, 'curated'), false),
         isNew: bool(s(r, 'new_arrival'), false),
         sortOrder: int(s(r, 'sort_order')) ?? 1000,
         tags: list(s(r, 'tags')),
@@ -356,6 +372,25 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
         tab: title,
       });
     }
+  }
+
+  /* ---- product ↔ category mapping rows ---- */
+  for (const r of rows('product_categories')) {
+    const pid = s(r, 'product_id');
+    const cid = s(r, 'category_id').toLowerCase();
+    if (!pid || !cid) continue;
+    if (!byId.has(pid)) {
+      issues.warn('Product categories', r.__row, `product_id "${pid}" does not exist.`);
+      continue;
+    }
+    const product = byId.get(pid);
+    if (!product || rootCats.has(cid) || rootTypeOf(cid)) continue;
+    if (!catIds.has(cid)) {
+      issues.warn('Product categories', r.__row, `unknown category "${cid}" ignored.`);
+      continue;
+    }
+    if (!product.categoryIds.includes(cid)) product.categoryIds.push(cid);
+    product.primaryCategoryId ??= cid;
   }
 
   /* ---- variants ---- */
@@ -469,6 +504,7 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
       issues.warn('Media', r.__row, `variant_id "${vid}" does not belong to ${pid}; image shown for all options.`);
     }
     const focal = s(r, 'focal_point');
+    const fitRaw = s(r, 'fit').toLowerCase();
     product.media.push({
       id: mid,
       url: url ?? '',
@@ -477,7 +513,7 @@ export async function buildCatalog(source: TabSource): Promise<Catalog> {
       role,
       variantId: vid && product.variants.some((v) => v.id === vid) ? vid : undefined,
       focal: /^\d{1,3}% \d{1,3}%$/.test(focal) ? focal : undefined,
-      fit: fitFor(role),
+      fit: fitRaw === 'cover' || fitRaw === 'contain' ? fitRaw : fitFor(role),
     });
   }
 

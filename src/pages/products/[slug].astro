@@ -267,7 +267,7 @@ const jsonLd = purchasable && !preview
 
       <OfferTiles catalog={catalog} eligible={eligibleForBuyGet} productType={product.type} />
 
-      <div class="accordion pdp__acc">
+      <div class="accordion pdp__acc" hidden={!(hasDetails || offers.buyGet.length > 0 || offers.spend || catalog.settings.deliveryInfo || catalog.settings.returnsInfo)}>
         {
           hasDetails && (
             <details open>

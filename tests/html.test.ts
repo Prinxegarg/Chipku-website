@@ -29,3 +29,14 @@ describe('html safety', () => {
     expect(html).toContain('href="/products/x-y"');
   });
 });
+
+import { responsive, transformUrl } from '../src/lib/images.ts';
+
+describe('image urls', () => {
+  it('resizes Cloudinary delivery URLs and leaves others alone', () => {
+    const u = 'https://res.cloudinary.com/fckqbe5q/image/upload/f_auto,q_auto/1';
+    expect(transformUrl(u, 480, [])).toBe('https://res.cloudinary.com/fckqbe5q/image/upload/c_limit,w_480/f_auto,q_auto/1');
+    expect(responsive(u, [320, 640], []).srcset).toContain('w_640/f_auto,q_auto/1 640w');
+    expect(transformUrl('https://img.example.com/a.jpg', 480, [])).toBe('https://img.example.com/a.jpg');
+  });
+});

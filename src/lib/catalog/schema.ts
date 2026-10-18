@@ -30,6 +30,7 @@ export type TabKey =
   | 'variants'
   | 'media'
   | 'categories'
+  | 'product_categories'
   | 'offers'
   | 'settings'
   | 'reviews'
@@ -56,6 +57,7 @@ const productColumns: ColumnSpec[] = [
   { name: 'badge', description: 'One short factual label, e.g. New or Customisable. Leave blank for none.', example: 'New' },
   { name: 'trending', description: 'TRUE to show in Trending.', example: 'TRUE' },
   { name: 'bestseller', description: 'TRUE to show in Bestsellers — only when your sales data supports it.', example: 'FALSE' },
+  { name: 'curated', description: 'TRUE to show in “Our picks” under Find your next favourite.', example: 'TRUE' },
   { name: 'new_arrival', description: 'TRUE to list under New arrivals.', example: 'TRUE' },
   { name: 'tags', description: 'Search keywords, separated by commas.', example: 'football, black and white' },
   { name: 'sort_order', description: 'Lower numbers appear first.', example: '10' },
@@ -116,6 +118,7 @@ export const TABS: TabSpec[] = [
       { name: 'mobile_image_url', description: 'Optional mobile crop.' },
       { name: 'alt_text', description: 'Image description.' },
       { name: 'sort_order', description: 'Lower numbers appear first. The product-row image is always first.' },
+      { name: 'fit', description: 'contain (show the whole image) or cover (fill and crop). Blank = based on role.', example: 'contain' },
       { name: 'focal_point', description: 'For cropped photos: horizontal% vertical%.', example: '50% 35%' },
     ],
   },
@@ -136,6 +139,17 @@ export const TABS: TabSpec[] = [
       { name: 'show_on_home', description: 'TRUE to show in “Shop by collection”.' },
       { name: 'sort_order', description: 'Lower numbers appear first.' },
       { name: 'active', description: 'FALSE hides it. Blank = TRUE.' },
+    ],
+  },
+  {
+    key: 'product_categories',
+    title: 'Product categories',
+    requiredLive: false,
+    purpose: 'Optional extra product ↔ category links, one row per pair (in addition to primary_category_id).',
+    columns: [
+      { name: 'product_id', required: true, description: 'Product ID.' },
+      { name: 'category_id', required: true, description: 'Category ID from the Categories tab.' },
+      { name: 'sort_order', description: 'Not used yet.' },
     ],
   },
   {
